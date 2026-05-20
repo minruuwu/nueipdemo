@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新進員工自助入職 — 填寫預覽</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto Sans TC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F5F6FA; --surface: #FFF;
+  --border: #E4E6EF; --border-light: #F0F1F8;
+  --text-primary: #1B1D2E; --text-secondary: #6B6E8A; --text-muted: #A0A3B8;
+  --accent: #4C6EF5; --accent-light: #EEF2FF; --accent-dark: #3656D4;
+  --success: #12B76A; --success-bg: #ECFDF5;
+  --danger: #EF4444; --danger-bg: #FEF2F2;
+  --radius: 10px; --radius-sm: 6px;
+  --shadow: 0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+}
+body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; min-height: 100vh; }
+
+/* ── Topbar ── */
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); height: 56px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+.logo-icon { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; }
+.tab-group { display: flex; gap: 4px; }
+.tab { padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); transition: all .15s; }
+.tab:hover { border-color: var(--accent); color: var(--accent); }
+.tab.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+
+/* ── Panels ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Fill page ── */
+.fill-container { max-width: 760px; margin: 0 auto; padding: 32px 24px 60px; }
+.fill-header { margin-bottom: 24px; }
+.fill-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.fill-subtitle { font-size: 13.5px; color: var(--text-secondary); }
+
+/* Progress */
+.fill-progress { display: flex; align-items: center; gap: 0; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+.fill-step { display: flex; align-items: center; gap: 0; flex-shrink: 0; cursor: pointer; }
+.step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; border: 2px solid var(--border); background: var(--surface); color: var(--text-muted); transition: all .2s; }
+.step-dot.done { background: var(--success); border-color: var(--success); color: #fff; }
+.step-dot.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step-label { font-size: 11px; color: var(--text-muted); margin: 0 4px; white-space: nowrap; }
+.step-label.active { color: var(--accent); font-weight: 500; }
+.step-line { width: 18px; height: 2px; background: var(--border); flex-shrink: 0; }
+.step-line.done { background: var(--success); }
+
+/* Section */
+.fill-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.fill-section-title { font-size: 13px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
+.fill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fill-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
+.fill-item { display: flex; flex-direction: column; gap: 5px; }
+.fill-item.full { grid-column: 1/-1; }
+.fill-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.fill-label .req { color: var(--danger); }
+.fill-input, .fill-select, .fill-textarea { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 11px; font-size: 13.5px; font-family: inherit; color: var(--text-primary); outline: none; transition: border-color .15s; background: var(--surface); }
+.fill-input:focus, .fill-select:focus, .fill-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(76,110,245,.08); }
+.fill-input[readonly] { background: var(--bg); color: var(--text-secondary); cursor: not-allowed; }
+.fill-textarea { resize: vertical; min-height: 80px; }
+.readonly-note { font-size: 11px; color: var(--text-muted); }
+
+/* Sub cards */
+.sub-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px; }
+.sub-card:last-child { margin-bottom: 0; }
+.sub-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sub-card-title { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+.sub-remove { border: none; background: none; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; font-family: inherit; transition: all .12s; }
+.sub-remove:hover { background: var(--danger-bg); color: var(--danger); }
+.add-sub-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--accent); cursor: pointer; background: none; border: 1px dashed rgba(76,110,245,.3); border-radius: var(--radius-sm); padding: 5px 12px; font-family: inherit; margin-top: 8px; transition: all .15s; }
+.add-sub-btn:hover { background: var(--accent-light); }
+
+/* Nav */
+.fill-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; font-family: inherit; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-outline { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #0da55b; }
+
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+/* ── Status pages ── */
+.status-body { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+.status-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-lg); padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; }
+.status-icon { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; }
+.status-icon.expired { background: #FEF2F2; }
+.status-icon.done    { background: #ECFDF5; }
+.status-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+.status-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.75; }
+.status-meta { margin-top: 24px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 18px; text-align: left; }
+.status-meta-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border-light); }
+.status-meta-row:last-child { border-bottom: none; }
+.status-meta-row .label { color: var(--text-muted); }
+.status-meta-row .value { color: var(--text-primary); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="logo-icon">N</div>nuHRM　入職資料填寫</div>
+  <div class="tab-group">
+    <div class="tab active" onclick="switchTab('fill')">填寫頁面</div>
+    <div class="tab" onclick="switchTab('done')">已填寫完成</div>
+    <div class="tab" onclick="switchTab('expired')">連結已失效</div>
+  </div>
+</div>
+
+<!-- ══ 填寫頁面 ══ -->
+<div id="panel-fill" class="panel active">
+  <div class="fill-container">
+    <div class="fill-header">
+      <div class="fill-title">歡迎，陳怡君！</div>
+      <div class="fill-subtitle">請填寫以下入職資料，完成後將自動儲存。預計到職日：2025-06-02</div>
+    </div>
+    <div class="fill-progress" id="fill-progress"></div>
+
+    <!-- Step 1 基本資料 -->
+    <div class="step-panel active" data-step="0">
+      <div class="fill-section">
+        <div class="fill-section-title">📋 基本資料</div>
+        <div class="fill-grid">
+          <div class="fill-item"><label class="fill-label">姓名</label><input class="fill-input" value="陳怡君" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
+          <div class="fill-item"><label class="fill-label">預計報到部門</label><input class="fill-input" value="人力資源部"></div>
+          <div class="fill-item"><label class="fill-label">預計到職日</label><input class="fill-input" value="2025-06-02" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
+          <div class="fill-item"><label class="fill-label">出生年月日 <span class="req">*</span></label><input type="date" class="fill-input" value="1995-03-18"></div>
+          <div class="fill-item"><label class="fill-label">性別 <span class="req">*</span></label><select class="fill-select"><option>女</option><option>男</option></select></div>
+          <div class="fill-item"><label class="fill-label">婚姻狀態</label><select class="fill-select"><option>未婚</option><option>已婚</option><option>離婚</option><option>分居</option><option>喪偶</option></select></div>
+          <div class="fill-item"><label class="fill-label">身分族群</label><select class="fill-select"><option>一般</option><option>原住民</option><option>華僑</option><option>外籍配偶</option><option>外籍員工</option></select></div>
+          <div class="fill-item"><label class="fill-label">身分證號碼 <span class="req">*</span></label><input class="fill-input" value="A225678901"></div>
+          <div class="fill-item"><label class="fill-label">兵役狀態</label><select class="fill-select"><option>役畢</option><option>免役</option><option>未役</option><option>待役</option></select></div>
+          <div class="fill-item"><label class="fill-label">退伍日期</label><input class="fill-input" value="無" placeholder="無 或 YYYY-MM"></div>
+          <div class="fill-item"><label class="fill-label">身心障礙類別</label><select class="fill-select"><option>無</option><option>輕度</option><option>中度</option><option>重度</option><option>極重度</option></select></div>
+          <div class="fill-item"><label class="fill-label">身心障礙說明</label><input class="fill-input" placeholder="如有需說明請填寫"></div>
+          <div class="fill-item"><label class="fill-label">國籍</label><input class="fill-input" value="中華民國"></div>
+        </div>
+      </div>
+      <div class="fill-nav"><div></div><button class="btn btn-primary" onclick="goStep(1)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 2 聯絡資料 -->
+    <div class="step-panel" data-step="1">
+      <div class="fill-section">
+        <div class="fill-section-title">📞 聯絡資料</div>
+        <div class="fill-grid">
+          <div class="fill-item"><label class="fill-label">住家電話</label><input class="fill-input" placeholder="02-XXXX-XXXX"></div>
+          <div class="fill-item"><label class="fill-label">手機 <span class="req">*</span></label><input class="fill-input" value="0912-345-678"></div>
+          <div class="fill-item full"><label class="fill-label">戶籍地址</label><input class="fill-input" value="台北市中山區民生東路二段100號5樓"></div>
+          <div class="fill-item full"><label class="fill-label">通訊地址</label><input class="fill-input" placeholder="同戶籍地址或另填"></div>
+          <div class="fill-item"><label class="fill-label">電子信箱</label><input class="fill-input" value="yijun.chen@gmail.com" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
+        </div>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(0)">← 上一步</button><button class="btn btn-primary" onclick="goStep(2)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 3 緊急聯絡人 -->
+    <div class="step-panel" data-step="2">
+      <div class="fill-section">
+        <div class="fill-section-title">🆘 緊急聯絡人 <span style="font-size:11.5px;color:var(--text-muted);font-weight:400">（最多 2 筆）</span></div>
+        <div id="emergency-list">
+          <div class="sub-card">
+            <div class="sub-card-header"><span class="sub-card-title">聯絡人 1</span></div>
+            <div class="fill-grid">
+              <div class="fill-item"><label class="fill-label">聯絡人姓名</label><input class="fill-input" value="林大明"></div>
+              <div class="fill-item"><label class="fill-label">關係</label><select class="fill-select"><option>配偶</option><option>父母</option><option>子女</option><option>兄弟姊妹</option><option>其他</option></select></div>
+              <div class="fill-item"><label class="fill-label">電話</label><input class="fill-input" placeholder="02-XXXX-XXXX"></div>
+              <div class="fill-item"><label class="fill-label">手機</label><input class="fill-input" value="0933-456-789"></div>
+              <div class="fill-item full"><label class="fill-label">備註</label><input class="fill-input" placeholder="選填"></div>
+            </div>
+          </div>
+        </div>
+        <button class="add-sub-btn" id="add-emergency-btn" onclick="addEmergency()">＋ 新增緊急聯絡人</button>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(1)">← 上一步</button><button class="btn btn-primary" onclick="goStep(3)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 4 眷屬資料 -->
+    <div class="step-panel" data-step="3">
+      <div class="fill-section">
+        <div class="fill-section-title">👨‍👩‍👧 眷屬資料</div>
+        <div id="dependent-list">
+          <div class="sub-card">
+            <div class="sub-card-header"><span class="sub-card-title">眷屬 1</span><button class="sub-remove" onclick="removeSub(this,'dependent-list','眷屬')">移除</button></div>
+            <div class="fill-grid col3">
+              <div class="fill-item"><label class="fill-label">姓名</label><input class="fill-input" value="林大明"></div>
+              <div class="fill-item"><label class="fill-label">關係</label><select class="fill-select"><option>配偶</option><option>父母</option><option>子女</option><option>祖父母</option></select></div>
+              <div class="fill-item"><label class="fill-label">性別</label><select class="fill-select"><option>男</option><option>女</option></select></div>
+              <div class="fill-item"><label class="fill-label">身分證號</label><input class="fill-input" placeholder="A123456789"></div>
+              <div class="fill-item"><label class="fill-label">出生年月日</label><input type="date" class="fill-input" value="1993-08-10"></div>
+              <div class="fill-item"><label class="fill-label">備註</label><input class="fill-input" placeholder="選填"></div>
+            </div>
+          </div>
+        </div>
+        <button class="add-sub-btn" onclick="addDependent()">＋ 新增眷屬</button>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(2)">← 上一步</button><button class="btn btn-primary" onclick="goStep(4)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 5 學歷 -->
+    <div class="step-panel" data-step="4">
+      <div class="fill-section">
+        <div class="fill-section-title">🎓 學歷</div>
+        <div id="edu-list">
+          <div class="sub-card">
+            <div class="sub-card-header"><span class="sub-card-title">學歷 1</span><button class="sub-remove" onclick="removeSub(this,'edu-list','學歷')">移除</button></div>
+            <div class="fill-grid">
+              <div class="fill-item"><label class="fill-label">就學起始年月</label><input class="fill-input" value="2013-09" placeholder="YYYY-MM"></div>
+              <div class="fill-item"><label class="fill-label">就學結束年月</label><input class="fill-input" value="2017-06" placeholder="YYYY-MM"></div>
+              <div class="fill-item"><label class="fill-label">學制</label><select class="fill-select"><option>大學</option><option>碩士</option><option>博士</option><option>高中</option><option>高職</option></select></div>
+              <div class="fill-item"><label class="fill-label">狀態</label><select class="fill-select"><option>畢業</option><option>肄業</option><option>就學中</option></select></div>
+              <div class="fill-item"><label class="fill-label">學校</label><input class="fill-input" value="國立台灣大學"></div>
+              <div class="fill-item"><label class="fill-label">科系</label><input class="fill-input" value="財務金融學系"></div>
+            </div>
+          </div>
+        </div>
+        <button class="add-sub-btn" onclick="addEdu()">＋ 新增學歷</button>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(3)">← 上一步</button><button class="btn btn-primary" onclick="goStep(5)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 6 工作經歷 -->
+    <div class="step-panel" data-step="5">
+      <div class="fill-section">
+        <div class="fill-section-title">💼 工作經歷</div>
+        <div id="exp-list">
+          <div class="sub-card">
+            <div class="sub-card-header"><span class="sub-card-title">經歷 1</span><button class="sub-remove" onclick="removeSub(this,'exp-list','經歷')">移除</button></div>
+            <div class="fill-grid">
+              <div class="fill-item"><label class="fill-label">在職起始年月</label><input class="fill-input" value="2020-07" placeholder="YYYY-MM"></div>
+              <div class="fill-item"><label class="fill-label">在職結束年月</label><input class="fill-input" value="2025-05" placeholder="YYYY-MM 或至今"></div>
+              <div class="fill-item"><label class="fill-label">職務年資</label><input class="fill-input" value="4年10月" placeholder="N年M月"></div>
+              <div class="fill-item"><label class="fill-label">公司名稱</label><input class="fill-input" value="台積電"></div>
+              <div class="fill-item"><label class="fill-label">職稱</label><input class="fill-input" value="人資助理"></div>
+              <div class="fill-item"><label class="fill-label">薪資</label><input class="fill-input" value="45000" placeholder="月薪（元）"></div>
+            </div>
+          </div>
+        </div>
+        <button class="add-sub-btn" onclick="addExp()">＋ 新增工作經歷</button>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(4)">← 上一步</button><button class="btn btn-primary" onclick="goStep(6)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 7 技能專長 -->
+    <div class="step-panel" data-step="6">
+      <div class="fill-section">
+        <div class="fill-section-title">🛠 技能專長</div>
+        <div class="fill-grid">
+          <div class="fill-item full"><label class="fill-label">語言能力</label><textarea class="fill-textarea" placeholder="例：中文（母語）、英文（多益 850）">中文（母語）、英文（多益 870）</textarea></div>
+          <div class="fill-item full"><label class="fill-label">擅長工具</label><textarea class="fill-textarea" placeholder="例：Excel、PowerPoint…">Excel、PowerPoint、SAP HR 模組</textarea></div>
+          <div class="fill-item full"><label class="fill-label">證照</label><textarea class="fill-textarea" placeholder="例：會計師、勞工安全管理員…">人力資源管理師（SHRM-CP）</textarea></div>
+        </div>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(5)">← 上一步</button><button class="btn btn-primary" onclick="goStep(7)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 8 薪轉帳戶 -->
+    <div class="step-panel" data-step="7">
+      <div class="fill-section">
+        <div class="fill-section-title">🏦 薪轉帳戶</div>
+        <div class="fill-grid">
+          <div class="fill-item"><label class="fill-label">銀行 <span class="req">*</span></label>
+            <select class="fill-select">
+              <option>004 台灣銀行</option><option>005 土地銀行</option><option>006 合作金庫</option>
+              <option>007 第一銀行</option><option>008 華南銀行</option><option>012 台北富邦</option>
+              <option>013 國泰世華</option><option>017 兆豐銀行</option>
+              <option selected>822 中國信託</option><option>808 玉山銀行</option>
+              <option>812 台新銀行</option><option>824 永豐銀行</option>
+            </select>
+          </div>
+          <div class="fill-item"><label class="fill-label">分行代碼</label><input class="fill-input" value="0018" placeholder="例：0018"></div>
+          <div class="fill-item full"><label class="fill-label">帳戶號碼 <span class="req">*</span></label><input class="fill-input" value="001045678901234"></div>
+        </div>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(6)">← 上一步</button><button class="btn btn-success" onclick="alert('資料已送出！感謝您完成填寫，我們期待您的到來。')">✓ 確認送出</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 已填寫完成 ══ -->
+<div id="panel-done" class="panel">
+  <div class="status-body">
+    <div class="status-card">
+      <div class="status-icon done">✅</div>
+      <div class="status-title" style="color:#057A55">資料已填寫完成</div>
+      <div class="status-desc">
+        您已成功完成入職資料填寫，感謝您的配合！<br><br>
+        人資部門將於報到前完成資料確認。<br>
+        如需修改資料，請聯繫公司人資部門。
+      </div>
+      <div class="status-meta">
+        <div class="status-meta-row"><span class="label">填寫者</span><span class="value">陳怡君</span></div>
+        <div class="status-meta-row"><span class="label">完成時間</span><span class="value">2025-05-20 14:32</span></div>
+        <div class="status-meta-row"><span class="label">預計到職日</span><span class="value">2025-06-02</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 連結已失效 ══ -->
+<div id="panel-expired" class="panel">
+  <div class="status-body">
+    <div class="status-card">
+      <div class="status-icon expired">🚫</div>
+      <div class="status-title" style="color:#B91C1C">連結已失效</div>
+      <div class="status-desc">
+        此填寫連結已無法使用，可能原因如下：<br>
+        連結已超過有效期限，或此邀請已由公司人資部門作廢。<br><br>
+        如有疑問，請聯繫公司人資部門重新取得填寫連結。
+      </div>
+      <div class="status-meta">
+        <div class="status-meta-row"><span class="label">收件者</span><span class="value">陳怡君</span></div>
+        <div class="status-meta-row"><span class="label">原連結有效期限</span><span class="value">2025-05-26</span></div>
+        <div class="status-meta-row"><span class="label">失效原因</span><span class="value" style="color:#B91C1C">已逾期</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Tab switch ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Progress ──
+const stepLabels = ['基本資料','聯絡資料','緊急聯絡人','眷屬資料','學歷','工作經歷','技能專長','薪轉帳戶'];
+let currentStep = 0;
+const doneSteps = new Set();
+
+function buildProgress() {
+  document.getElementById('fill-progress').innerHTML = stepLabels.map((l, i) => {
+    const isDone = doneSteps.has(i), isActive = i === currentStep;
+    return `<div class="fill-step" onclick="goStep(${i})">
+      <div class="step-dot ${isDone?'done':isActive?'active':''}">${isDone?'✓':i+1}</div>
+      <span class="step-label ${isActive?'active':''}">${l}</span>
+      ${i < stepLabels.length-1 ? `<div class="step-line ${isDone?'done':''}"></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function goStep(n) {
+  if (n > currentStep) doneSteps.add(currentStep);
+  document.querySelectorAll('.step-panel').forEach((p, i) => p.classList.toggle('active', i === n));
+  currentStep = n;
+  buildProgress();
+  window.scrollTo(0, 0);
+}
+
+// ── Sub card helpers ──
+let emergencyCount = 1;
+function addEmergency() {
+  if (emergencyCount >= 2) { alert('最多只能新增 2 位緊急聯絡人'); return; }
+  emergencyCount++;
+  const btn = document.getElementById('add-emergency-btn');
+  const card = document.createElement('div'); card.className = 'sub-card';
+  card.innerHTML = `<div class="sub-card-header"><span class="sub-card-title">聯絡人 ${emergencyCount}</span><button class="sub-remove" onclick="removeEmergency(this)">移除</button></div>
+    <div class="fill-grid">
+      <div class="fill-item"><label class="fill-label">聯絡人姓名</label><input class="fill-input" placeholder="姓名"></div>
+      <div class="fill-item"><label class="fill-label">關係</label><select class="fill-select"><option>配偶</option><option>父母</option><option>子女</option><option>兄弟姊妹</option><option>其他</option></select></div>
+      <div class="fill-item"><label class="fill-label">電話</label><input class="fill-input" placeholder="02-XXXX-XXXX"></div>
+      <div class="fill-item"><label class="fill-label">手機</label><input class="fill-input" placeholder="09XX-XXX-XXX"></div>
+      <div class="fill-item full"><label class="fill-label">備註</label><input class="fill-input" placeholder="選填"></div>
+    </div>`;
+  btn.parentNode.insertBefore(card, btn);
+  if (emergencyCount >= 2) btn.style.display = 'none';
+}
+function removeEmergency(btn) { btn.closest('.sub-card').remove(); emergencyCount--; document.getElementById('add-emergency-btn').style.display = ''; }
+
+function addSubCard(listId, title, html) {
+  const list = document.getElementById(listId);
+  const count = list.querySelectorAll('.sub-card').length + 1;
+  const card = document.createElement('div'); card.className = 'sub-card';
+  card.innerHTML = `<div class="sub-card-header"><span class="sub-card-title">${title} ${count}</span><button class="sub-remove" onclick="removeSub(this,'${listId}','${title}')">移除</button></div>${html}`;
+  list.appendChild(card);
+}
+function removeSub(btn, listId, title) {
+  btn.closest('.sub-card').remove();
+  document.querySelectorAll(`#${listId} .sub-card-title`).forEach((t, i) => t.textContent = `${title} ${i+1}`);
+}
+function addDependent() { addSubCard('dependent-list','眷屬',`<div class="fill-grid col3"><div class="fill-item"><label class="fill-label">姓名</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">關係</label><select class="fill-select"><option>配偶</option><option>父母</option><option>子女</option></select></div><div class="fill-item"><label class="fill-label">性別</label><select class="fill-select"><option>男</option><option>女</option></select></div><div class="fill-item"><label class="fill-label">身分證號</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">出生年月日</label><input type="date" class="fill-input"></div><div class="fill-item"><label class="fill-label">備註</label><input class="fill-input"></div></div>`); }
+function addEdu() { addSubCard('edu-list','學歷',`<div class="fill-grid"><div class="fill-item"><label class="fill-label">就學起始年月</label><input class="fill-input" placeholder="YYYY-MM"></div><div class="fill-item"><label class="fill-label">就學結束年月</label><input class="fill-input" placeholder="YYYY-MM"></div><div class="fill-item"><label class="fill-label">學制</label><select class="fill-select"><option>大學</option><option>碩士</option><option>博士</option><option>高中</option></select></div><div class="fill-item"><label class="fill-label">狀態</label><select class="fill-select"><option>畢業</option><option>肄業</option><option>就學中</option></select></div><div class="fill-item"><label class="fill-label">學校</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">科系</label><input class="fill-input"></div></div>`); }
+function addExp() { addSubCard('exp-list','經歷',`<div class="fill-grid"><div class="fill-item"><label class="fill-label">在職起始年月</label><input class="fill-input" placeholder="YYYY-MM"></div><div class="fill-item"><label class="fill-label">在職結束年月</label><input class="fill-input" placeholder="YYYY-MM 或至今"></div><div class="fill-item"><label class="fill-label">職務年資</label><input class="fill-input" placeholder="N年M月"></div><div class="fill-item"><label class="fill-label">公司名稱</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">職稱</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">薪資</label><input class="fill-input" placeholder="月薪（元）"></div></div>`); }
+
+buildProgress();
+</script>
+</body>
+</html>
