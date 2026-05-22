@@ -1,0 +1,181 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .container { padding: 1.5rem 0; max-width: 680px; }
+  .section-label { font-size: 12px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .mbti-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+  .axis-group { display: flex; flex-direction: column; gap: 6px; }
+  .axis-title { font-size: 11px; color: var(--color-text-tertiary); text-align: center; margin-bottom: 2px; }
+  .mbti-btn { padding: 10px 6px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--color-text-primary); text-align: center; transition: all 0.15s; }
+  .mbti-btn:hover { border-color: var(--color-border-secondary); background: var(--color-background-secondary); }
+  .mbti-btn.selected { border: 2px solid #534AB7; background: #EEEDFE; color: #3C3489; }
+  .mbti-result { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; background: var(--color-background-primary); }
+  .type-badge { display: inline-block; padding: 4px 14px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+  .badge-green { background: #EAF3DE; color: #27500A; }
+  .badge-amber { background: #FAEEDA; color: #633806; }
+  .badge-red { background: #FCEBEB; color: #791F1F; }
+  .badge-blue { background: #E6F1FB; color: #0C447C; }
+  .result-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+  .result-desc { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 14px; }
+  .rule-list { display: flex; flex-direction: column; gap: 8px; }
+  .rule-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--border-radius-md); font-size: 13px; line-height: 1.5; }
+  .rule-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .rule-green { background: #EAF3DE; color: #27500A; }
+  .rule-amber { background: #FAEEDA; color: #633806; }
+  .rule-red { background: #FCEBEB; color: #791F1F; }
+  .rule-blue { background: #E6F1FB; color: #0C447C; }
+  .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.25rem 0; }
+  .empty-state { text-align: center; padding: 2rem; color: var(--color-text-secondary); font-size: 14px; }
+  .type-display { font-size: 36px; font-weight: 500; color: #534AB7; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .meta-row { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: var(--color-text-secondary); display: flex; align-items: center; gap: 4px; }
+  .meta-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .suggest-btn { width: 100%; padding: 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-primary); font-size: 14px; cursor: pointer; margin-top: 12px; }
+  .suggest-btn:hover { background: var(--color-background-secondary); }
+</style>
+<div class="container">
+  <h2 style="font-size:18px; font-weight:500; color:var(--color-text-primary); margin-bottom:6px;">客戶 MBTI 進件分析</h2>
+  <p style="font-size:14px; color:var(--color-text-secondary); margin-bottom:1.5rem;">選擇客戶的 MBTI 四個維度，系統自動判斷進件客製化程度與處理方式。</p>
+
+  <div class="section-label">選擇 MBTI 類型</div>
+  <div class="mbti-grid">
+    <div class="axis-group">
+      <div class="axis-title">能量來源</div>
+      <button class="mbti-btn" data-axis="EI" data-val="E" onclick="select(this)">E<br><span style="font-size:11px;font-weight:400;color:inherit;">外向</span></button>
+      <button class="mbti-btn" data-axis="EI" data-val="I" onclick="select(this)">I<br><span style="font-size:11px;font-weight:400;color:inherit;">內向</span></button>
+    </div>
+    <div class="axis-group">
+      <div class="axis-title">資訊接收</div>
+      <button class="mbti-btn" data-axis="SN" data-val="S" onclick="select(this)">S<br><span style="font-size:11px;font-weight:400;color:inherit;">實感</span></button>
+      <button class="mbti-btn" data-axis="SN" data-val="N" onclick="select(this)">N<br><span style="font-size:11px;font-weight:400;color:inherit;">直覺</span></button>
+    </div>
+    <div class="axis-group">
+      <div class="axis-title">決策方式</div>
+      <button class="mbti-btn" data-axis="TF" data-val="T" onclick="select(this)">T<br><span style="font-size:11px;font-weight:400;color:inherit;">思考</span></button>
+      <button class="mbti-btn" data-axis="TF" data-val="F" onclick="select(this)">F<br><span style="font-size:11px;font-weight:400;color:inherit;">情感</span></button>
+    </div>
+    <div class="axis-group">
+      <div class="axis-title">生活方式</div>
+      <button class="mbti-btn" data-axis="JP" data-val="J" onclick="select(this)">J<br><span style="font-size:11px;font-weight:400;color:inherit;">判斷</span></button>
+      <button class="mbti-btn" data-axis="JP" data-val="P" onclick="select(this)">P<br><span style="font-size:11px;font-weight:400;color:inherit;">感知</span></button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div class="empty-state">
+      <i class="ti ti-user-search" style="font-size:32px; display:block; margin-bottom:8px;" aria-hidden="true"></i>
+      請選擇完整的四個維度以查看進件建議
+    </div>
+  </div>
+</div>
+
+<script>
+const selected = { EI: null, SN: null, TF: null, JP: null };
+
+const profiles = {
+  J: {
+    level: "允許客製",
+    badge: "badge-green",
+    color: "#27500A",
+    dot: "#639922",
+    pm: "全程參與",
+    custom: "允許",
+    desc: "J 型客戶偏好結構化、有明確規劃的流程，決策果斷且尊重規範。與這類客戶合作時，PM 可主動介入，釐清需求後進行有限度的客製化，但仍需評估是否符合 SaaS 架構。",
+    rules: [
+      { icon: "ti-circle-check", style: "rule-green", text: "PM 可出面接洽，主導需求訪談與功能規劃" },
+      { icon: "ti-circle-check", style: "rule-green", text: "允許進行客製化評估，依案件複雜度排序開發優先級" },
+      { icon: "ti-info-circle", style: "rule-blue", text: "客製功能須符合 SaaS 架構，不得影響其他客戶的共用模組" },
+      { icon: "ti-info-circle", style: "rule-blue", text: "業務需先取得客戶需求文件，再交由 PM 評估可行性" }
+    ]
+  },
+  P: {
+    level: "不做客製",
+    badge: "badge-red",
+    color: "#791F1F",
+    dot: "#E24B4A",
+    pm: "不出面",
+    custom: "不允許",
+    desc: "P 型客戶彈性高、偏好開放選項，但往往需求模糊且容易變更，對 SaaS 標準化系統來說風險較高。PM 不介入，由業務與顧問協助客戶用現有系統解決需求。",
+    rules: [
+      { icon: "ti-circle-x", style: "rule-red", text: "PM 不出面，不進行客製化評估" },
+      { icon: "ti-circle-x", style: "rule-red", text: "不開發任何專屬功能或特殊串接" },
+      { icon: "ti-alert-triangle", style: "rule-amber", text: "業務與顧問需自行評估現有系統功能是否能滿足需求" },
+      { icon: "ti-bulb", style: "rule-blue", text: "若現有功能確實不足，可提出公版需求（適用所有客戶）供 PM 評估納入 Roadmap" }
+    ]
+  }
+};
+
+function select(btn) {
+  const axis = btn.dataset.axis;
+  const val = btn.dataset.val;
+  document.querySelectorAll(`[data-axis="${axis}"]`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selected[axis] = val;
+  if (Object.values(selected).every(v => v !== null)) render();
+}
+
+function render() {
+  const type = selected.EI + selected.SN + selected.TF + selected.JP;
+  const jp = selected.JP;
+  const p = profiles[jp];
+
+  const rules = p.rules.map(r => `
+    <div class="rule-item ${r.style}">
+      <i class="ti ${r.icon} rule-icon" aria-hidden="true"></i>
+      <span>${r.text}</span>
+    </div>
+  `).join('');
+
+  const additionalByType = getAdditionalRules(type, jp);
+
+  document.getElementById('result-area').innerHTML = `
+    <div class="mbti-result">
+      <div class="type-badge ${p.badge}">${p.level}</div>
+      <div class="type-display">${type}</div>
+      <div class="meta-row">
+        <div class="meta-item"><span class="meta-dot" style="background:${p.dot}"></span> PM 介入：${p.pm}</div>
+        <div class="meta-item"><span class="meta-dot" style="background:${p.dot}"></span> 客製化：${p.custom}</div>
+      </div>
+      <div class="result-desc">${p.desc}</div>
+      <div class="section-label">進件處理規則</div>
+      <div class="rule-list">
+        ${rules}
+        ${additionalByType}
+      </div>
+      <button class="suggest-btn" onclick="sendPrompt('請幫我針對 ${type} 型客戶，提供更詳細的進件溝通話術和常見需求模式分析')">
+        <i class="ti ti-arrow-up-right" aria-hidden="true"></i> 產生 ${type} 型溝通建議 ↗
+      </button>
+    </div>
+  `;
+}
+
+function getAdditionalRules(type, jp) {
+  const extras = [];
+  if (jp === 'J') {
+    if (type.includes('T')) {
+      extras.push({ icon: "ti-chart-bar", style: "rule-blue", text: "T 型偏好數據與邏輯佐證，提案時需附上功能ROI說明" });
+    }
+    if (type.includes('F')) {
+      extras.push({ icon: "ti-heart", style: "rule-blue", text: "F 型重視使用者體驗感受，客製方向優先考慮 UI/UX 調整" });
+    }
+    if (type.includes('N')) {
+      extras.push({ icon: "ti-telescope", style: "rule-blue", text: "N 型有長遠願景，可探討系統未來擴充計畫作為切入點" });
+    }
+  }
+  if (jp === 'P') {
+    if (type.includes('N')) {
+      extras.push({ icon: "ti-alert-triangle", style: "rule-amber", text: "NP 型需求特別容易發散，業務須在初期明確收斂範圍" });
+    }
+    if (type.includes('E')) {
+      extras.push({ icon: "ti-users", style: "rule-amber", text: "EP 型活躍愛社交，可引導參加使用者社群影響公版 Roadmap" });
+    }
+  }
+  return extras.map(r => `
+    <div class="rule-item ${r.style}">
+      <i class="ti ${r.icon} rule-icon" aria-hidden="true"></i>
+      <span>${r.text}</span>
+    </div>
+  `).join('');
+}
+</script>
