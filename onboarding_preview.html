@@ -101,6 +101,18 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .status-meta-row:last-child { border-bottom: none; }
 .status-meta-row .label { color: var(--text-muted); }
 .status-meta-row .value { color: var(--text-primary); font-weight: 500; }
+/* ── Upload zone ── */
+.upload-item { display:flex; flex-direction:column; gap:6px; }
+.upload-item-header { display:flex; align-items:center; justify-content:space-between; }
+.upload-item-label { font-size:12.5px; font-weight:500; color:var(--text-secondary); }
+.upload-status { font-size:12px; font-weight:500; }
+.upload-zone { border:2px dashed var(--border); border-radius:var(--radius); padding:22px 16px; text-align:center; cursor:pointer; transition:all .15s; background:var(--bg); }
+.upload-zone:hover { border-color:var(--accent); background:var(--accent-light); }
+.upload-zone.drag-over { border-color:var(--accent); background:var(--accent-light); }
+.upload-zone.uploaded { border:1px solid var(--success); background:#F0FDF4; cursor:default; padding:14px 16px; text-align:left; }
+.upload-zone-icon { font-size:24px; margin-bottom:6px; }
+.upload-zone-text { font-size:13.5px; color:var(--text-secondary); margin-bottom:4px; }
+.upload-zone-hint { font-size:12px; color:var(--text-muted); }
 </style>
 </head>
 <body>
@@ -128,8 +140,11 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
       <div class="fill-section">
         <div class="fill-section-title">📋 基本資料</div>
         <div class="fill-grid">
-          <div class="fill-item"><label class="fill-label">姓名</label><input class="fill-input" value="陳怡君" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
-          <div class="fill-item"><label class="fill-label">預計報到部門</label><input class="fill-input" value="人力資源部"></div>
+          <div class="fill-item"><label class="fill-label">中文姓名</label><input class="fill-input" value="陳怡君" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
+          <div class="fill-item"><label class="fill-label">英文名字（First Name）</label><input class="fill-input" placeholder="例：Yi-Jun"></div>
+          <div class="fill-item"><label class="fill-label">英文姓氏（Last Name）</label><input class="fill-input" placeholder="例：Chen"></div>
+          <div class="fill-item"><label class="fill-label">預計報到部門</label><input class="fill-input" value="人力資源部" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
+          <div class="fill-item"><label class="fill-label">職稱</label><input class="fill-input" value="人資專員" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
           <div class="fill-item"><label class="fill-label">預計到職日</label><input class="fill-input" value="2025-06-02" readonly><div class="readonly-note">自動帶入，不可修改</div></div>
           <div class="fill-item"><label class="fill-label">出生年月日 <span class="req">*</span></label><input type="date" class="fill-input" value="1995-03-18"></div>
           <div class="fill-item"><label class="fill-label">性別 <span class="req">*</span></label><select class="fill-select"><option>女</option><option>男</option></select></div>
@@ -279,7 +294,104 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
           <div class="fill-item full"><label class="fill-label">帳戶號碼 <span class="req">*</span></label><input class="fill-input" value="001045678901234"></div>
         </div>
       </div>
-      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(6)">← 上一步</button><button class="btn btn-success" onclick="alert('資料已送出！感謝您完成填寫，我們期待您的到來。')">✓ 確認送出</button></div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(6)">← 上一步</button><button class="btn btn-primary" onclick="goStep(8)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 9 上傳附件 -->
+    <div class="step-panel" data-step="8">
+      <div class="fill-section">
+        <div class="fill-section-title">📎 上傳附件</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">請上傳以下人資所要求的文件。每個項目限上傳 1 個檔案，大小上限 10 MB，支援格式：JPG、PNG、GIF、PDF、DOC、DOCX、XLS、XLSX、PPT、PPTX、TXT、CSV、XML。</p>
+        <div id="upload-items" style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- 身分證正面 -->
+          <div class="upload-item">
+            <div class="upload-item-header">
+              <span class="upload-item-label">身分證正面 <span class="req">*</span></span>
+              <span class="upload-status" id="status-id-front"></span>
+            </div>
+            <div class="upload-zone" id="zone-id-front" onclick="triggerUpload('file-id-front','zone-id-front','status-id-front')" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'file-id-front','zone-id-front','status-id-front')">
+              <div class="upload-zone-icon">📁</div>
+              <div class="upload-zone-text">點擊選擇檔案，或拖曳至此</div>
+              <div class="upload-zone-hint">JPG / PNG / PDF，上限 10 MB</div>
+              <input type="file" id="file-id-front" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.ppsx,.txt,.pst,.csv,.xml" style="display:none" onchange="handleFileChange(this,'zone-id-front','status-id-front')">
+            </div>
+          </div>
+
+          <!-- 身分證背面 -->
+          <div class="upload-item">
+            <div class="upload-item-header">
+              <span class="upload-item-label">身分證背面 <span class="req">*</span></span>
+              <span class="upload-status" id="status-id-back"></span>
+            </div>
+            <div class="upload-zone" id="zone-id-back" onclick="triggerUpload('file-id-back','zone-id-back','status-id-back')" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'file-id-back','zone-id-back','status-id-back')">
+              <div class="upload-zone-icon">📁</div>
+              <div class="upload-zone-text">點擊選擇檔案，或拖曳至此</div>
+              <div class="upload-zone-hint">JPG / PNG / PDF，上限 10 MB</div>
+              <input type="file" id="file-id-back" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.ppsx,.txt,.pst,.csv,.xml" style="display:none" onchange="handleFileChange(this,'zone-id-back','status-id-back')">
+            </div>
+          </div>
+
+          <!-- 學歷證明 -->
+          <div class="upload-item">
+            <div class="upload-item-header">
+              <span class="upload-item-label">學歷證明</span>
+              <span class="upload-status" id="status-edu"></span>
+            </div>
+            <div class="upload-zone" id="zone-edu" onclick="triggerUpload('file-edu','zone-edu','status-edu')" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'file-edu','zone-edu','status-edu')">
+              <div class="upload-zone-icon">📁</div>
+              <div class="upload-zone-text">點擊選擇檔案，或拖曳至此</div>
+              <div class="upload-zone-hint">JPG / PNG / PDF，上限 10 MB</div>
+              <input type="file" id="file-edu" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.ppsx,.txt,.pst,.csv,.xml" style="display:none" onchange="handleFileChange(this,'zone-edu','status-edu')">
+            </div>
+          </div>
+
+          <!-- 前公司離職證明 -->
+          <div class="upload-item">
+            <div class="upload-item-header">
+              <span class="upload-item-label">前公司離職證明</span>
+              <span class="upload-status" id="status-resign"></span>
+            </div>
+            <div class="upload-zone" id="zone-resign" onclick="triggerUpload('file-resign','zone-resign','status-resign')" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'file-resign','zone-resign','status-resign')">
+              <div class="upload-zone-icon">📁</div>
+              <div class="upload-zone-text">點擊選擇檔案，或拖曳至此</div>
+              <div class="upload-zone-hint">JPG / PNG / PDF，上限 10 MB</div>
+              <input type="file" id="file-resign" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.ppsx,.txt,.pst,.csv,.xml" style="display:none" onchange="handleFileChange(this,'zone-resign','status-resign')">
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="fill-nav"><button class="btn btn-outline" onclick="goStep(7)">← 上一步</button><button class="btn btn-primary" onclick="goStep(9)">下一步　→</button></div>
+    </div>
+
+    <!-- Step 10 個資同意 -->
+    <div class="step-panel" data-step="9">
+      <div class="fill-section">
+        <div class="fill-section-title">📄 個人資料保護與隱私權同意</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px;max-height:340px;overflow-y:auto;font-size:13px;line-height:1.85;color:var(--text-secondary);margin-bottom:20px">
+          <p style="font-weight:600;color:var(--text-primary);margin-bottom:10px">一、個人資料蒐集之目的與利用</p>
+          <p style="margin-bottom:12px">本公司依據《個人資料保護法》相關規定，於您辦理入職手續及人事管理作業期間，蒐集、處理及利用您所提供之個人資料。蒐集目的包含但不限於：人事管理、薪資給付、勞健保及退休金申報、緊急聯絡、法令遵循事項及其他與勞動契約履行相關之必要作業。</p>
+          <p style="font-weight:600;color:var(--text-primary);margin-bottom:10px">二、個人資料類別</p>
+          <p style="margin-bottom:12px">本公司蒐集之個人資料類別包含：基本識別資料（姓名、身分證字號、出生年月日、性別、國籍等）、聯絡資訊（地址、電話、電子信箱等）、家庭狀況（婚姻狀態、眷屬資料等）、教育及工作背景（學歷、工作經歷、技能等）、金融帳戶資訊（薪轉帳戶）及其他依法令規定需蒐集之資料。</p>
+          <p style="font-weight:600;color:var(--text-primary);margin-bottom:10px">三、個人資料利用期間、地區及對象</p>
+          <p style="margin-bottom:12px">您的個人資料將於勞動契約存續期間及依法令規定之保存期限內使用，利用地區以中華民國境內為原則。除法令另有規定外，本公司不會將您的個人資料提供予第三方，惟依法令規定須向政府機關申報者（如勞工保險局、健保署、稅務機關等）不在此限。</p>
+          <p style="font-weight:600;color:var(--text-primary);margin-bottom:10px">四、您的權利</p>
+          <p style="margin-bottom:12px">依據《個人資料保護法》第三條規定，您得就本公司保有之個人資料，行使以下權利：查詢或請求閱覽、請求製給複製本、請求補充或更正、請求停止蒐集、處理或利用、請求刪除。如欲行使上述權利，請洽公司人資部門。</p>
+          <p style="font-weight:600;color:var(--text-primary);margin-bottom:10px">五、隱私權政策</p>
+          <p style="margin-bottom:12px">本公司將採取適當之技術及管理措施，保護您的個人資料安全，防止未經授權之存取、揭露、竄改或毀損。本公司員工均須遵守個資保護相關規定，違者將依公司規定及法令予以處理。</p>
+          <p style="font-weight:600;color:var(--text-primary);margin-bottom:10px">六、同意之效力</p>
+          <p>您勾選同意後，即表示您已詳細閱讀並充分了解上述告知事項，並同意本公司依前述目的蒐集、處理及利用您所提供之個人資料。若您不同意，本公司將無法完成入職手續。</p>
+        </div>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:14px 16px;background:#EEF2FF;border:1px solid rgba(76,110,245,.25);border-radius:var(--radius-sm)">
+          <input type="checkbox" id="consent-checkbox" style="width:16px;height:16px;margin-top:2px;accent-color:#4C6EF5;flex-shrink:0" onchange="updateConsentBtn()">
+          <span style="font-size:13.5px;color:var(--text-primary);line-height:1.6">我已詳細閱讀上述個人資料保護告知事項及隱私權政策，並同意本公司依上述目的蒐集、處理及利用本人之個人資料。</span>
+        </label>
+      </div>
+      <div class="fill-nav">
+        <button class="btn btn-outline" onclick="goStep(8)">← 上一步</button>
+        <button class="btn btn-success" id="submit-btn" onclick="submitForm()" disabled style="opacity:.4;cursor:not-allowed">✓ 確認送出</button>
+      </div>
     </div>
   </div>
 </div>
@@ -334,7 +446,7 @@ function switchTab(name) {
 }
 
 // ── Progress ──
-const stepLabels = ['基本資料','聯絡資料','緊急聯絡人','眷屬資料','學歷','工作經歷','技能專長','薪轉帳戶'];
+const stepLabels = ['基本資料','聯絡資料','緊急聯絡人','眷屬資料','學歷','工作經歷','技能專長','薪轉帳戶','上傳附件','個資同意'];
 let currentStep = 0;
 const doneSteps = new Set();
 
@@ -391,6 +503,73 @@ function removeSub(btn, listId, title) {
 function addDependent() { addSubCard('dependent-list','眷屬',`<div class="fill-grid col3"><div class="fill-item"><label class="fill-label">姓名</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">關係</label><select class="fill-select"><option>配偶</option><option>父母</option><option>子女</option></select></div><div class="fill-item"><label class="fill-label">性別</label><select class="fill-select"><option>男</option><option>女</option></select></div><div class="fill-item"><label class="fill-label">身分證號</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">出生年月日</label><input type="date" class="fill-input"></div><div class="fill-item"><label class="fill-label">備註</label><input class="fill-input"></div></div>`); }
 function addEdu() { addSubCard('edu-list','學歷',`<div class="fill-grid"><div class="fill-item"><label class="fill-label">就學起始年月</label><input class="fill-input" placeholder="YYYY-MM"></div><div class="fill-item"><label class="fill-label">就學結束年月</label><input class="fill-input" placeholder="YYYY-MM"></div><div class="fill-item"><label class="fill-label">學制</label><select class="fill-select"><option>大學</option><option>碩士</option><option>博士</option><option>高中</option></select></div><div class="fill-item"><label class="fill-label">狀態</label><select class="fill-select"><option>畢業</option><option>肄業</option><option>就學中</option></select></div><div class="fill-item"><label class="fill-label">學校</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">科系</label><input class="fill-input"></div></div>`); }
 function addExp() { addSubCard('exp-list','經歷',`<div class="fill-grid"><div class="fill-item"><label class="fill-label">在職起始年月</label><input class="fill-input" placeholder="YYYY-MM"></div><div class="fill-item"><label class="fill-label">在職結束年月</label><input class="fill-input" placeholder="YYYY-MM 或至今"></div><div class="fill-item"><label class="fill-label">職務年資</label><input class="fill-input" placeholder="N年M月"></div><div class="fill-item"><label class="fill-label">公司名稱</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">職稱</label><input class="fill-input"></div><div class="fill-item"><label class="fill-label">薪資</label><input class="fill-input" placeholder="月薪（元）"></div></div>`); }
+
+// ── Upload helpers ──
+const ALLOWED_EXT = ['jpg','jpeg','png','gif','doc','docx','xls','xlsx','ppt','pptx','ppsx','pdf','txt','pst','csv','xml'];
+const MAX_SIZE_MB = 10;
+
+function triggerUpload(fileId, zoneId, statusId) {
+  document.getElementById(fileId).click();
+}
+function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function handleDrop(e, fileId, zoneId, statusId) {
+  e.preventDefault();
+  document.getElementById(zoneId).classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file, zoneId, statusId);
+}
+function handleFileChange(input, zoneId, statusId) {
+  const file = input.files[0];
+  if (file) processFile(file, zoneId, statusId);
+}
+function processFile(file, zoneId, statusId) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const sizeMB = file.size / 1024 / 1024;
+  const zone = document.getElementById(zoneId);
+  const status = document.getElementById(statusId);
+  if (!ALLOWED_EXT.includes(ext)) {
+    status.textContent = '❌ 不支援此格式';
+    status.style.color = 'var(--danger)';
+    return;
+  }
+  if (sizeMB > MAX_SIZE_MB) {
+    status.textContent = `❌ 檔案超過 ${MAX_SIZE_MB} MB`;
+    status.style.color = 'var(--danger)';
+    return;
+  }
+  zone.classList.add('uploaded');
+  zone.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">📄</span>
+      <div>
+        <div style="font-size:13.5px;font-weight:500;color:var(--text-primary)">${file.name}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${sizeMB.toFixed(2)} MB</div>
+      </div>
+      <button onclick="clearUpload('${zoneId}','${statusId}')" style="margin-left:auto;border:none;background:none;color:var(--danger);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:4px" onmouseover="this.style.background='var(--danger-bg)'" onmouseout="this.style.background='none'">✕ 移除</button>
+    </div>`;
+  status.textContent = '✓ 已上傳';
+  status.style.color = 'var(--success)';
+}
+function clearUpload(zoneId, statusId) {
+  const zone = document.getElementById(zoneId);
+  zone.classList.remove('uploaded');
+  zone.innerHTML = `
+    <div class="upload-zone-icon">📁</div>
+    <div class="upload-zone-text">點擊選擇檔案，或拖曳至此</div>
+    <div class="upload-zone-hint">JPG / PNG / PDF，上限 10 MB</div>
+    <input type="file" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.ppsx,.txt,.pst,.csv,.xml" style="display:none" onchange="handleFileChange(this,'${zoneId}','${statusId}')">`;
+  zone.onclick = () => zone.querySelector('input').click();
+  document.getElementById(statusId).textContent = '';
+}
+
+function updateConsentBtn() {
+  const checked = document.getElementById('consent-checkbox').checked;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = !checked;
+  btn.style.opacity = checked ? '1' : '.4';
+  btn.style.cursor = checked ? 'pointer' : 'not-allowed';
+}
+function submitForm() { alert('資料已送出！感謝您完成填寫，我們期待您的到來。'); }
 
 buildProgress();
 </script>
