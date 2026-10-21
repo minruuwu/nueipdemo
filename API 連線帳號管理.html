@@ -1,0 +1,1203 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>API 連線帳號管理</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Inter:wght@400;500;700&display=swap">
+<style>
+/* Layout: 客服後台 shell — fixed left nav + single working column; list page with filter bar, table, modals. Tokens from NUEIP Design System, scaled to admin density. */
+:root {
+  --brand: #0072f0;
+  --brand-strong: #123ab2;
+  --brand-tint: #e5f2ff;
+  --brand-wash: #f5f9ff;
+  --fg1: #001224;
+  --fg2: #1b354e;
+  --fg3: #465b70;
+  --fg4: #8797a7;
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-muted: #edf3f8;
+  --nav-bg: #00134a;
+  --nav-fg: #c9d6ea;
+  --border: #e4ecf3;
+  --border-strong: #cad6e1;
+  --success-bg: #e8fdeb; --success-fg: #0b8e42;
+  --warning-bg: #fef6cd; --warning-fg: #8a6500;
+  --danger-bg: #fff1f1;  --danger-fg: #e61400;
+  --neutral-bg: #edf3f8; --neutral-fg: #465b70;
+  --purple-bg: #f4ebff;  --purple-fg: #720ef0;
+  --mock-bg: #fff8db; --mock-fg: #6b5200;
+  --shadow-md: 0 4px 12px rgba(0,18,36,.08), 0 2px 4px rgba(0,18,36,.04);
+  --shadow-lg: 0 12px 32px rgba(0,18,36,.16), 0 4px 8px rgba(0,18,36,.06);
+  --overlay: rgba(0,18,36,.45);
+  --font-cjk: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --font-num: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --r-xs: 4px; --r-sm: 8px; --r-md: 12px; --r-pill: 999px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --brand: #4c9dff; --brand-strong: #8cc0ff; --brand-tint: #12305a; --brand-wash: #0d1f38;
+  --fg1: #eef3f9; --fg2: #d3deea; --fg3: #a9b9ca; --fg4: #7d8fa3;
+  --bg-page: #0a1522; --bg-card: #101f30; --bg-muted: #182a3e; --nav-bg: #050d1c; --nav-fg: #9fb3cc;
+  --border: #1f3348; --border-strong: #2c4560;
+  --success-bg: #0f3321; --success-fg: #5fd894;
+  --warning-bg: #3a2f08; --warning-fg: #f3cd52;
+  --danger-bg: #3d1414;  --danger-fg: #ff8a7d;
+  --neutral-bg: #1c3045; --neutral-fg: #b3c2d2;
+  --purple-bg: #2b1747;  --purple-fg: #c79cff;
+  --mock-bg: #3a3008; --mock-fg: #f0d675;
+  --overlay: rgba(0,0,0,.6);
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --brand: #4c9dff; --brand-strong: #8cc0ff; --brand-tint: #12305a; --brand-wash: #0d1f38;
+  --fg1: #eef3f9; --fg2: #d3deea; --fg3: #a9b9ca; --fg4: #7d8fa3;
+  --bg-page: #0a1522; --bg-card: #101f30; --bg-muted: #182a3e; --nav-bg: #050d1c; --nav-fg: #9fb3cc;
+  --border: #1f3348; --border-strong: #2c4560;
+  --success-bg: #0f3321; --success-fg: #5fd894;
+  --warning-bg: #3a2f08; --warning-fg: #f3cd52;
+  --danger-bg: #3d1414;  --danger-fg: #ff8a7d;
+  --neutral-bg: #1c3045; --neutral-fg: #b3c2d2;
+  --purple-bg: #2b1747;  --purple-fg: #c79cff;
+  --mock-bg: #3a3008; --mock-fg: #f0d675;
+  --overlay: rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg-page); color: var(--fg2); font-family: var(--font-cjk); font-size: 14px; line-height: 1.55; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100vh; }
+.nav { background: var(--nav-bg); color: var(--nav-fg); padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; }
+.nav-brand { color: #fff; font-weight: 900; font-size: 16px; padding: 4px 12px 16px; letter-spacing: .02em; }
+.nav-brand small { display: block; font-weight: 500; font-size: 12px; color: var(--nav-fg); letter-spacing: .08em; }
+.nav-group { font-size: 11px; letter-spacing: .1em; color: var(--fg4); padding: 14px 12px 4px; }
+.nav a { color: inherit; text-decoration: none; padding: 8px 12px; border-radius: var(--r-sm); display: block; }
+.nav a.active { background: rgba(76,157,255,.18); color: #fff; font-weight: 700; }
+
+.main { min-width: 0; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.main-inner { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.mock-note { background: var(--mock-bg); color: var(--mock-fg); border-radius: var(--r-sm); padding: 8px 12px; font-size: 13px; }
+.crumb { color: var(--fg4); font-size: 13px; }
+.head { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; justify-content: space-between; }
+.head h1 { margin: 0; font-size: 24px; font-weight: 900; color: var(--fg1); text-wrap: balance; }
+.head p { margin: 4px 0 0; color: var(--fg3); max-width: 62ch; }
+
+.btn { border: 1px solid var(--border-strong); background: var(--bg-card); border-radius: var(--r-sm); padding: 7px 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--brand); color: var(--brand); }
+.btn-primary { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+.btn-primary:hover { background: var(--brand-strong); border-color: var(--brand-strong); color: #fff; }
+.btn-danger { background: var(--danger-fg); border-color: var(--danger-fg); color: #fff; font-weight: 700; }
+.btn-danger:hover { filter: brightness(.92); color: #fff; border-color: var(--danger-fg); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-sm { padding: 4px 10px; font-size: 13px; }
+.btn-link { background: none; border: none; color: var(--brand); padding: 4px 6px; cursor: pointer; }
+.btn-link:hover { text-decoration: underline; }
+
+.filters { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.filters input[type="search"], .filters select { border: 1px solid var(--border-strong); background: var(--bg-card); border-radius: var(--r-sm); padding: 7px 10px; }
+.filters input[type="search"] { flex: 1 1 260px; min-width: 0; }
+.filters label.toggle { display: flex; gap: 6px; align-items: center; color: var(--fg3); }
+.count { color: var(--fg4); margin-left: auto; font-size: 13px; }
+
+.table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 1080px; }
+th { text-align: left; font-size: 12px; font-weight: 700; color: var(--fg3); letter-spacing: .04em; background: var(--bg-muted); padding: 10px 14px; white-space: nowrap; }
+td { padding: 12px 14px; border-top: 1px solid var(--border); vertical-align: top; }
+tr.readonly td { background: var(--brand-wash); }
+.co-name { font-weight: 700; color: var(--fg1); }
+.sub { color: var(--fg4); font-size: 12px; font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.more { color: var(--fg4); font-size: 12px; }
+.mono { font-family: var(--font-mono); font-size: 13px; color: var(--fg1); }
+.acct-title { color: var(--fg3); font-size: 12px; margin-top: 2px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--r-pill); padding: 2px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.on { background: var(--success-bg); color: var(--success-fg); }
+.pill.off { background: var(--neutral-bg); color: var(--neutral-fg); }
+.pill.exp { background: var(--warning-bg); color: var(--warning-fg); }
+.tag { display: inline-block; border-radius: var(--r-xs); padding: 1px 6px; font-size: 11px; font-weight: 700; margin-left: 6px; vertical-align: 1px; }
+.tag.partner { background: var(--purple-bg); color: var(--purple-fg); }
+.tag.lock { background: var(--brand-tint); color: var(--brand-strong); }
+.tag.code { background: var(--warning-bg); color: var(--warning-fg); }
+.period { margin-top: 4px; }
+.pw { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pw-mask { font-family: var(--font-mono); letter-spacing: .15em; color: var(--fg4); }
+.pw-hint { color: var(--fg4); font-size: 12px; width: 100%; }
+.actions { white-space: nowrap; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--fg3); font-size: 13px; }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; background: var(--brand-wash); border: 1px solid var(--border-strong); }
+
+.overlay { position: fixed; inset: 0; background: var(--overlay); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
+.modal { background: var(--bg-card); border-radius: var(--r-md); box-shadow: var(--shadow-lg); width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; }
+.modal header { padding: 18px 20px 0; }
+.modal h2 { margin: 0; font-size: 18px; color: var(--fg1); }
+.modal .step { color: var(--fg4); font-size: 12px; letter-spacing: .06em; margin-bottom: 4px; }
+.modal .body { padding: 14px 20px; display: flex; flex-direction: column; gap: 12px; }
+.modal footer { padding: 12px 20px 18px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-weight: 700; color: var(--fg2); font-size: 13px; }
+.field input, .field select { border: 1px solid var(--border-strong); background: var(--bg-card); border-radius: var(--r-sm); padding: 8px 10px; width: 100%; min-width: 0; }
+.field .help { color: var(--fg4); font-size: 12px; }
+.title-preview { background: var(--bg-muted); border-radius: var(--r-sm); padding: 8px 10px; color: var(--fg1); word-break: break-all; }
+.warn { background: var(--warning-bg); color: var(--warning-fg); border-radius: var(--r-sm); padding: 10px 12px; font-size: 13px; }
+.danger-box { background: var(--danger-bg); color: var(--danger-fg); border-radius: var(--r-sm); padding: 10px 12px; font-size: 13px; }
+.ok-box { background: var(--success-bg); color: var(--success-fg); border-radius: var(--r-sm); padding: 10px 12px; font-size: 13px; }
+.cred { border: 1px solid var(--border); border-radius: var(--r-sm); }
+.cred-row { display: grid; grid-template-columns: 112px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; }
+.cred-row + .cred-row { border-top: 1px solid var(--border); }
+.cred-row .k { color: var(--fg3); font-size: 13px; }
+.cred-row .v { font-family: var(--font-mono); font-size: 13px; color: var(--fg1); word-break: break-all; }
+.check { display: flex; gap: 8px; align-items: flex-start; }
+.toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--fg1); color: var(--bg-card); padding: 9px 16px; border-radius: var(--r-sm); box-shadow: var(--shadow-md); z-index: 30; font-size: 13px; }
+
+.mods-sum { font-weight: 700; color: var(--fg1); font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.mods-sum small { font-weight: 400; color: var(--fg4); font-family: var(--font-cjk); margin-left: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.chip { border-radius: var(--r-xs); padding: 2px 7px; font-size: 12px; line-height: 1.5; }
+.chip.denied { background: var(--danger-bg); color: var(--danger-fg); }
+.chip.expired { background: var(--warning-bg); color: var(--warning-fg); }
+.chip.limit { background: var(--brand-tint); color: var(--brand-strong); }
+.chip.special { background: var(--purple-bg); color: var(--purple-fg); }
+.chip.plain { background: var(--neutral-bg); color: var(--neutral-fg); }
+.mods-none { color: var(--fg4); font-size: 12px; margin-top: 4px; }
+.btn-expand { margin-top: 6px; padding: 0; font-size: 12px; }
+tr.detail td { border-top: none; padding-top: 0; }
+.mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 6px; background: var(--bg-muted); border-radius: var(--r-sm); padding: 10px; }
+.mod-cell { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-xs); padding: 7px 9px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mod-cell .n { color: var(--fg1); font-size: 13px; }
+.mod-cell .c { color: var(--fg4); font-size: 11px; font-family: var(--font-mono); }
+.mod-cell .s { font-size: 12px; font-weight: 700; }
+.mod-cell .note { font-size: 11px; color: var(--brand-strong); }
+.mod-cell.st-default .s { color: var(--success-fg); }
+.mod-cell.st-granted .s { color: var(--success-fg); }
+.mod-cell.st-denied { border-color: var(--danger-fg); } .mod-cell.st-denied .s { color: var(--danger-fg); }
+.mod-cell.st-expired { border-color: var(--warning-fg); } .mod-cell.st-expired .s { color: var(--warning-fg); }
+.mod-cell.st-none { background: transparent; } .mod-cell.st-none .s, .mod-cell.st-none .n { color: var(--fg4); }
+.legend-block { display: flex; flex-direction: column; gap: 8px; }
+.modal.wide { width: min(820px, 100%); }
+.section-title { font-weight: 700; color: var(--fg1); font-size: 15px; margin-top: 4px; }
+.mode { display: flex; flex-direction: column; gap: 6px; }
+.mode label { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; cursor: pointer; }
+.mode label:has(input:checked) { border-color: var(--brand); background: var(--brand-wash); }
+.mode small { display: block; color: var(--fg4); font-size: 12px; }
+.bulk { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bulk .count { margin-left: auto; }
+.mgroup { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 4px 10px 8px; margin: 0; min-width: 0; }
+.mgroup legend { font-size: 12px; color: var(--fg3); font-weight: 700; padding: 0 4px; letter-spacing: .04em; }
+.mrow { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; padding: 6px 0; }
+.mrow + .mrow { border-top: 1px dashed var(--border); }
+.mrow > label { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.mrow .c { color: var(--fg4); font-size: 11px; font-family: var(--font-mono); }
+.mrow.off > label { color: var(--fg4); }
+.ops { display: flex; gap: 4px; flex-wrap: wrap; }
+.op { border: 1px solid var(--border-strong); background: var(--bg-card); border-radius: var(--r-pill); padding: 1px 10px; font-size: 12px; cursor: pointer; color: var(--fg4); }
+.op[aria-pressed="true"] { background: var(--brand-tint); border-color: var(--brand); color: var(--brand-strong); font-weight: 700; }
+.op:disabled { opacity: .4; cursor: not-allowed; }
+.fields-panel { background: var(--bg-muted); border-radius: var(--r-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; margin: 2px 0 6px; }
+.fields-panel .head-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.fields-panel .head-row strong { color: var(--fg1); margin-right: 4px; }
+.fgroup-title { font-size: 12px; font-weight: 700; color: var(--fg3); display: flex; gap: 8px; align-items: center; }
+.fgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 12px; margin-top: 4px; }
+.fgrid label { display: flex; gap: 6px; align-items: center; font-size: 13px; min-width: 0; }
+.fgrid label.hide-on { color: var(--danger-fg); font-weight: 700; }
+.fgrid .k { color: var(--fg4); font-size: 11px; font-family: var(--font-mono); }
+.fields-note { color: var(--fg4); font-size: 12px; }
+.summary-list { margin: 0; padding-left: 18px; color: var(--fg2); display: flex; flex-direction: column; gap: 2px; }
+.combo { position: relative; }
+.combo input { padding-right: 32px; }
+.combo::after { content: "▾"; position: absolute; right: 12px; top: 8px; color: var(--fg4); pointer-events: none; }
+#c-company-list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--r-sm); box-shadow: var(--shadow-md); max-height: 280px; overflow: auto; margin: 0; padding: 4px; list-style: none; }
+#c-company-list li { padding: 7px 9px; border-radius: var(--r-xs); cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+#c-company-list li .sub { margin-left: auto; }
+#c-company-list li[aria-selected="true"], #c-company-list li:hover { background: var(--brand-wash); }
+#c-company-list li[aria-disabled="true"] { cursor: not-allowed; color: var(--fg4); background: transparent; }
+#c-company-list li.foot { cursor: default; color: var(--fg4); font-size: 12px; background: transparent; justify-content: center; }
+#c-company-list mark { background: var(--warning-bg); color: inherit; border-radius: 2px; }
+.ctag { border-radius: var(--r-xs); padding: 0 6px; font-size: 11px; font-weight: 700; }
+.ctag.pending { background: var(--warning-bg); color: var(--warning-fg); }
+.ctag.closed { background: var(--neutral-bg); color: var(--neutral-fg); }
+.ctag.nobpm { background: var(--purple-bg); color: var(--purple-fg); }
+.ctag.has { background: var(--brand-tint); color: var(--brand-strong); }
+#c-company-hint { display: flex; flex-direction: column; gap: 6px; }
+#c-company-hint:empty { display: none; }
+.field textarea { border: 1px solid var(--border-strong); background: var(--bg-card); border-radius: var(--r-sm); padding: 10px; width: 100%; min-width: 0; font: inherit; line-height: 1.6; resize: vertical; }
+.field .help.err { color: var(--danger-fg); }
+.field input.invalid, .field textarea.invalid { border-color: var(--danger-fg); }
+.mail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.adv-panel { background: var(--bg-muted); border-radius: var(--r-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; margin: 2px 0 6px; }
+.adv-row { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.adv-label { font-size: 13px; font-weight: 700; color: var(--fg2); min-width: 104px; }
+.adv-row input[type="date"], .ip-row input { border: 1px solid var(--border-strong); background: var(--bg-card); border-radius: var(--r-sm); padding: 5px 8px; min-width: 0; }
+.ip-list { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; flex: 1 1 280px; min-width: 0; }
+.ip-row { display: flex; gap: 6px; width: 100%; max-width: 460px; }
+.ip-row input { flex: 1 1 auto; font-family: var(--font-mono); font-size: 13px; }
+.mrow > label .chip { margin-left: 4px; }
+.mgroup.special { border-color: var(--purple-fg); }
+.manage-id { display: flex; gap: 10px; align-items: baseline; }
+.mode-inline { flex-direction: row; flex-wrap: wrap; }
+.readonly .body input, .readonly .body button, .readonly .bulk button { pointer-events: none; opacity: .55; }
+.locked-row { color: var(--fg4); font-size: 12px; padding: 6px 0; border-top: 1px dashed var(--border); }
+
+@media (max-width: 860px) {
+  .mod-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .nav { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
+  .nav-brand { padding: 0 8px 0 0; }
+  .nav-brand small, .nav-group, .nav a:not(.active) { display: none; }
+  .cred-row { grid-template-columns: minmax(0,1fr) auto; }
+  .cred-row .k { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: no-preference) { .modal { animation: pop .14s ease-out; } @keyframes pop { from { transform: translateY(6px); opacity: .6; } } }
+</style>
+
+<div class="shell">
+  <nav class="nav" aria-label="客服後台">
+    <div class="nav-brand">NUEiP 客服後台<small>SERVICE CONSOLE</small></div>
+    <div class="nav-group">公司</div>
+    <a href="#">公司管理</a>
+    <a href="#">功能存取權限</a>
+    <div class="nav-group">串接</div>
+    <a href="#" class="active" aria-current="page">API 連線帳號</a>
+    <a href="#">經銷商管理</a>
+    <div class="nav-group">系統</div>
+    <a href="#">客服帳號</a>
+  </nav>
+
+  <main class="main">
+    <div class="main-inner">
+      <div class="mock-note">介面模擬稿：資料都是範例，不會寫入任何系統。可以點「建立連線帳號」和「重設密碼」走流程。</div>
+      <div class="crumb">串接 / API 連線帳號</div>
+      <div class="head">
+        <div>
+          <h1>API 連線帳號</h1>
+          <p>客戶用連線帳號呼叫 HRM dealer API；同一組帳密也能呼叫 BPM external API。密碼只在建立或重設時顯示一次。</p>
+        </div>
+        <button class="btn btn-primary" id="btn-create" type="button">+ 建立連線帳號</button>
+      </div>
+
+      <div class="filters" role="search">
+        <input type="search" id="q" placeholder="搜尋公司名稱、公司代碼、帳號或帳號名稱" aria-label="搜尋">
+        <select id="f-status" aria-label="API 狀態">
+          <option value="">全部狀態</option>
+          <option value="on">已開啟</option>
+          <option value="exp">期限外</option>
+          <option value="off">已停用</option>
+        </select>
+        <select id="f-type" aria-label="帳號類型">
+          <option value="">全部類型</option>
+          <option value="general">一般帳號</option>
+          <option value="partner">鼎新 A1／經銷商</option>
+        </select>
+        <select id="f-mod" aria-label="模組"><option value="">全部模組</option></select>
+        <label class="toggle"><input type="checkbox" id="f-exc"> 只看有例外的</label>
+        <label class="toggle"><input type="checkbox" id="f-off"> 顯示已停用</label>
+        <span class="count" id="count"></span>
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">公司</th>
+                <th scope="col">開啟 API</th>
+                <th scope="col">可用 API</th>
+                <th scope="col">帳號</th>
+                <th scope="col">密碼</th>
+                <th scope="col"><span class="visually-hidden">操作</span></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="legend-block">
+      <div class="legend">
+        <span><span class="chip denied">已拒絕</span>這個模組任何時候都回 403</span>
+        <span><span class="chip expired">期限外</span>設定的有效期限已過或未到</span>
+        <span><span class="chip limit">有限制</span>可用，但限制了操作、IP 或欄位</span>
+        <span><span class="chip special">特殊開通</span>經銷所屬公司資料：能建立和修改公司，預設不開</span>
+      </div>
+      <div class="legend" style="color:var(--fg4)">「預設可用」：沒有個別設定也能用。新登錄的模組會自動對預設可用的帳號生效；鼎新 A1 不吃預設，只有開通的模組能用。</div>
+      <div class="legend">
+        <span><i class="swatch"></i>藍底列：鼎新 A1、經銷商帳號，旗下多家公司共用，這裡只能看</span>
+        <span><span class="tag lock" style="margin:0">已設限制</span>有操作或欄位限制</span>
+        <span><span class="tag code" style="margin:0">程式設定</span>另有 repo 裡的欄位白名單，修改請洽工程</span>
+      </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="ov-create" hidden>
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="create-title">
+    <div id="create-step1">
+      <header><h2 id="create-title">建立連線帳號</h2></header>
+      <div class="body">
+        <div id="c-manage-head" hidden></div>
+        <div id="c-create-fields">
+        <div class="field">
+          <label for="c-company">公司</label>
+          <div class="combo">
+            <input id="c-company-q" role="combobox" aria-expanded="false" aria-controls="c-company-list" aria-autocomplete="list" autocomplete="off" placeholder="點一下展開全部公司，或輸入名稱、代碼、序號">
+            <input type="hidden" id="c-company">
+            <ul id="c-company-list" role="listbox" hidden></ul>
+          </div>
+          <div id="c-company-hint"></div>
+        </div>
+        <div class="field">
+          <label for="c-purpose">用途說明（可留空）</label>
+          <input id="c-purpose" maxlength="40" placeholder="例：薪資系統、外部廠商">
+          <span class="help">接在公司名稱後面，用來分辨同一家公司的多個帳號</span>
+        </div>
+        <div class="field">
+          <label>帳號名稱預覽</label>
+          <div class="title-preview" id="c-preview"></div>
+        </div>
+        </div>
+        <div class="section-title">有效期間與 IP 限制</div>
+        <div class="adv-row"><span class="adv-label">帳號有效期間</span><input type="date" id="c-from" aria-label="帳號開始日"> ~ <input type="date" id="c-until" aria-label="帳號結束日"><span class="help">結束日留空＝無期限；過期後所有 API 都回 403</span></div>
+        <div class="mode" role="radiogroup" aria-label="IP 限制">
+          <label><input type="radio" name="c-ipmode" value="none"> <span>不限制 IP<small>之後可以在管理頁設定</small></span></label>
+          <label><input type="radio" name="c-ipmode" value="only"> <span>只允許以下 IP<small>套用到這個帳號的所有 API，包括以後新上架的</small></span></label>
+        </div>
+        <div class="ip-list" id="c-iplist" hidden></div>
+        <div class="section-title">開放的 API</div>
+        <div class="mode" role="radiogroup" aria-label="開放方式">
+          <label><input type="radio" name="c-mode" value="default" checked> <span>預設全開，取消勾選的改成拒絕<small>之後新上架的 API 會自動開放給這個帳號</small></span></label>
+          <label><input type="radio" name="c-mode" value="strict"> <span>只開勾選的 API<small>之後新上架的 API 不會自動開放，要另外開通</small></span></label>
+        </div>
+        <div class="bulk">
+          <button class="btn btn-sm" type="button" id="c-all">全部勾選</button>
+          <button class="btn btn-sm" type="button" id="c-none">全部取消</button>
+          <button class="btn btn-sm" type="button" id="c-readonly">全部改成只能查詢</button>
+          <span class="count" id="c-modcount"></span>
+        </div>
+        <div id="c-mods" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div class="warn" id="c-create-warn">建立後系統產生 10 碼帳號與 40 碼密碼。密碼只在下一步顯示一次，之後任何地方都查不到。</div>
+      </div>
+      <footer>
+        <button class="btn" type="button" data-close="ov-create">取消</button>
+        <button class="btn btn-primary" type="button" id="c-submit">建立帳號</button>
+      </footer>
+    </div>
+    <div id="create-step2" hidden>
+      <header><h2>帳號已建立</h2></header>
+      <div class="body" id="c-result"></div>
+      <footer>
+        <button class="btn" type="button" id="c-done" disabled>已手動交付，關閉</button>
+        <button class="btn btn-primary" type="button" data-mailnow="c">寄送密碼函</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-reset" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+    <div id="reset-step1">
+      <header><h2 id="reset-title">重設密碼</h2></header>
+      <div class="body">
+        <div id="r-info"></div>
+        <div class="danger-box">舊密碼會立即失效。客戶換上新密碼之前，HRM 和 BPM 的 API 呼叫都會失敗。</div>
+        <div class="field">
+          <label for="r-confirm">輸入帳號確認</label>
+          <input id="r-confirm" autocomplete="off">
+        </div>
+      </div>
+      <footer>
+        <button class="btn" type="button" data-close="ov-reset">取消</button>
+        <button class="btn btn-danger" type="button" id="r-submit" disabled>重設密碼</button>
+      </footer>
+    </div>
+    <div id="reset-step2" hidden>
+      <header><h2>已重設密碼</h2></header>
+      <div class="body" id="r-result"></div>
+      <footer>
+        <button class="btn" type="button" id="r-done" disabled>已手動交付，關閉</button>
+        <button class="btn btn-primary" type="button" data-mailnow="r">寄送密碼函</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-mail" hidden>
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="mail-title">
+    <div id="mail-step1">
+      <header><h2 id="mail-title">寄送密碼函</h2></header>
+      <div class="body">
+        <div id="m-info"></div>
+        <div id="m-mode"></div>
+        <div class="field">
+          <label for="m-to">收件人</label>
+          <input id="m-to" type="text" inputmode="email" autocomplete="off" placeholder="name@example.com，多個信箱用逗號分隔">
+          <span class="help" id="m-to-err" hidden></span>
+        </div>
+        <div class="field">
+          <label for="m-cc">副本（可留空）</label>
+          <input id="m-cc" type="text" inputmode="email" autocomplete="off" placeholder="例如負責這家公司的業務或客服">
+        </div>
+        <div class="field">
+          <label for="m-subject">主旨</label>
+          <input id="m-subject" type="text">
+        </div>
+        <div class="field">
+          <label for="m-body">信件內容</label>
+          <textarea id="m-body" rows="16"></textarea>
+          <span class="help" id="m-token-help"></span>
+          <span class="help" id="m-token-err" hidden></span>
+        </div>
+      </div>
+      <footer>
+        <button class="btn" type="button" data-close="ov-mail">取消</button>
+        <button class="btn btn-primary" type="button" id="m-send">寄出</button>
+      </footer>
+    </div>
+    <div id="mail-step2" hidden>
+      <header><h2>已寄出密碼函</h2></header>
+      <div class="body" id="m-result"></div>
+      <footer><button class="btn btn-primary" type="button" data-close="ov-mail">關閉</button></footer>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<style>.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+
+<script>
+const accounts = [
+  { id: 412, type: 'general', companies: [{ sn: 22285, name: '晨曦生技股份有限公司', code: 'SUNRISE' }], title: '晨曦生技股份有限公司-薪資系統', username: 'k3f9a02xqm', status: 'on', from: '2026-10-01', until: '', bpm: 'ok', restricted: true, codeFilter: false },
+  { id: 409, type: 'general', companies: [{ sn: 22285, name: '晨曦生技股份有限公司', code: 'SUNRISE' }], title: '晨曦生技股份有限公司-外部廠商', username: 'p81zc4n7ds', status: 'on', from: '2026-08-15', until: '', bpm: 'pending', restricted: false, codeFilter: false },
+  { id: 388, type: 'general', companies: [{ sn: 19211, name: '海岸物流集團', code: 'COASTLG' }, { sn: 19230, name: '海岸倉儲', code: 'COASTWH' }, { sn: 19254, name: '海岸冷鏈', code: 'COASTCC' }], title: '海岸物流集團', username: 'coastlg', status: 'on', from: '2025-03-02', until: '', bpm: 'ok', restricted: false, codeFilter: false },
+  { id: 65, type: 'general', companies: [{ sn: 23679, name: '青楓餐飲集團', code: 'MAPLE' }], title: '青楓餐飲集團-排班廠商', username: 'maple_ext', status: 'on', from: '2025-11-20', until: '', bpm: 'unknown', restricted: false, codeFilter: true },
+  { id: 351, type: 'general', companies: [{ sn: 17702, name: '北辰精密工業', code: 'NSTAR' }], title: '北辰精密工業', username: 'nstar', status: 'exp', from: '2024-07-01', until: '2026-06-30', bpm: 'ok', restricted: false, codeFilter: false },
+  { id: 296, type: 'general', companies: [{ sn: 15108, name: '綠洲設計有限公司', code: 'OASIS' }], title: '綠洲設計有限公司', username: 'oasis', status: 'off', from: '2023-02-10', until: '2025-12-31', bpm: 'ok', restricted: false, codeFilter: false },
+  { id: 9, type: 'partner', partnerName: '鼎新 A1', companies: Array.from({ length: 214 }, (_, i) => ({ sn: 30000 + i, name: '', code: '' })), title: '鼎新 A1', username: 'digiwin_a1', status: 'on', from: '2021-05-01', until: '', bpm: 'na', restricted: false, codeFilter: false },
+  { id: 58, type: 'partner', partnerName: '經銷商', companies: Array.from({ length: 37 }, (_, i) => ({ sn: 31000 + i, name: '', code: '' })), title: '遠揚資訊（經銷商）', username: 'yuanyang', status: 'on', from: '2024-01-15', until: '', bpm: 'na', restricted: false, codeFilter: false },
+];
+/* st：1 正常、2 未開通、0 停用（不能選）；bpm：BPM 是否已建立這家公司 */
+const companyPool = [
+  { sn: 22285, name: '晨曦生技股份有限公司', code: 'SUNRISE', st: '1', bpm: true },
+  { sn: 19211, name: '海岸物流集團', code: 'COASTLG', st: '1', bpm: true },
+  { sn: 17702, name: '北辰精密工業', code: 'NSTAR', st: '1', bpm: true },
+  { sn: 24410, name: '山嵐建設股份有限公司', code: 'MISTCON', st: '1', bpm: true },
+  { sn: 24502, name: '晨星文創有限公司', code: 'MSTAR', st: '1', bpm: false },
+  { sn: 24618, name: '白鷺旅行社', code: 'EGRET', st: '2', bpm: false },
+  { sn: 23679, name: '青楓餐飲集團', code: 'MAPLE', st: '1', bpm: true },
+  { sn: 21033, name: '藍灣醫療器材', code: 'BLUEBAY', st: '1', bpm: true },
+  { sn: 20871, name: '松石會計師事務所', code: 'PINEST', st: '1', bpm: true },
+  { sn: 18820, name: '曉光電子股份有限公司', code: 'DAWNEL', st: '1', bpm: true },
+  { sn: 16540, name: '晨曦生技（舊公司）', code: 'SUNRISE0', st: '0', bpm: false },
+  { sn: 15108, name: '綠洲設計有限公司', code: 'OASIS', st: '1', bpm: true },
+  { sn: 24733, name: '雲杉人力派遣', code: 'SPRUCE', st: '1', bpm: true },
+  { sn: 24790, name: '赤崁食品工業', code: 'CHIKAN', st: '2', bpm: false },
+];
+
+const MODULES = [
+  ['users', '員工資料'], ['dept', '部門資料'], ['attendance', '考勤資料'], ['leave', '請假資料'],
+  ['overtime', '加班資料'], ['salaries', '薪資資料'], ['tmpleave', '留停資料'], ['option_tmpleave', '留停選項'],
+  ['rule_timeoff', '請假規則'], ['rule_holiday', '節假日規則'], ['rule_clockin', '打卡規則'], ['rule_audit', '簽核規則'],
+  ['rule_overtime', '加班規則'], ['ip_setting', 'IP 位址管理'], ['ip_management', 'IP 使用者管理'], ['notification', '通知資料'],
+  ['efficient_shift', '高效排班資料'], ['standard_shift', '標準排班'], ['companies', '經銷所屬公司資料'],
+];
+const MOD_NAME = Object.fromEntries(MODULES);
+const NOT_DEFAULT = new Set(['companies']);
+/* 每個帳號的模組授權設定（api_dealer_dealers_modules）；沒有列出的模組 = 沒有設定，看預設 */
+const settings = {
+  412: { users: { s: 'granted', ops: ['查詢', '新增'], blocked: ['經歷（含前公司薪資）'], hidden: ['身分證號碼', '護照號碼', '居留證號碼'] } },
+  409: { salaries: { s: 'denied' } },
+  65: { users: { s: 'granted', ip: 2 } },
+  351: { attendance: { s: 'expired', until: '2026-09-30' } },
+  58: { companies: { s: 'granted' } },
+  9: { companies: { s: 'granted' }, users: { s: 'granted' }, salaries: { s: 'granted' }, dept: { s: 'granted' }, attendance: { s: 'granted' }, leave: { s: 'granted' } },
+};
+const NO_DEFAULT_ACCOUNTS = new Set([9]); /* 鼎新 A1：use_default_modules = 0 */
+
+function moduleState(a, code) {
+  const st = (settings[a.id] || {})[code];
+  if (st && st.s === 'granted' && st.until && st.until < '2026-10-21') return Object.assign({}, st, { s: 'expired' });
+  if (st) return st;
+  if (NO_DEFAULT_ACCOUNTS.has(a.id) || NOT_DEFAULT.has(code)) return { s: 'none' };
+  return { s: 'default' };
+}
+const isUsable = (st) => st.s === 'default' || st.s === 'granted';
+const isLimited = (st) => st.s === 'granted' && (st.ops || st.hidden || st.ip || st.blocked);
+function limitText(st) {
+  const parts = [];
+  if (st.ops) parts.push(`只能${st.ops.join('、')}`);
+  if (st.blocked) parts.push(`不開放${st.blocked.join('、')}`);
+  if (st.hidden) parts.push(`隱藏 ${st.hidden.length} 欄`);
+  if (st.ip) parts.push(`IP 限 ${st.ip} 組`);
+  return parts.join('，');
+}
+function exceptionsOf(a) {
+  const list = [];
+  MODULES.forEach(([code, name]) => {
+    const st = moduleState(a, code);
+    if (st.s === 'denied') list.push({ cls: 'denied', code, text: `${name} 已拒絕` });
+    else if (st.s === 'expired') list.push({ cls: 'expired', code, text: `${name} 期限外` });
+    else if (isLimited(st)) list.push({ cls: 'limit', code, text: `${name}：${limitText(st)}` });
+    else if (st.s === 'granted' && NOT_DEFAULT.has(code) && !NO_DEFAULT_ACCOUNTS.has(a.id)) list.push({ cls: 'special', code, text: `${name} 已開通` });
+  });
+  return list;
+}
+const expanded = new Set();
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const statusLabel = { on: '已開啟', exp: '期限外', off: '已停用' };
+
+function companyCell(a) {
+  if (a.type === 'partner') {
+    return `<div class="co-name">${esc(a.title)}<span class="tag partner">${esc(a.partnerName)}</span></div><div class="more">旗下 ${a.companies.length} 家公司共用</div>`;
+  }
+  const first = a.companies[0];
+  const extra = a.companies.length > 1 ? `<div class="more">另有 ${a.companies.length - 1} 家附屬公司：${a.companies.slice(1).map((c) => esc(c.name)).join('、')}</div>` : '';
+  return `<div class="co-name">${esc(first.name)}</div><div class="sub">${esc(first.code)} · ${first.sn}</div>${extra}`;
+}
+function apiCell(a) {
+  const period = `${a.from} ~ ${a.until || '無限期'}`;
+  const bpm = { ok: 'BPM 已同步', pending: 'BPM 未同步', unknown: 'BPM 狀態未知', na: 'BPM 不同步' }[a.bpm];
+  const ip = a.ipList && a.ipList.length ? `<div class="more">IP 限 ${a.ipList.length} 組</div>` : '';
+  return `<span class="pill ${a.status}">${statusLabel[a.status]}</span><div class="sub period">${period}</div>${ip}<div class="more">${bpm}</div>`;
+}
+function modsCell(a) {
+  const usable = MODULES.filter(([code]) => isUsable(moduleState(a, code)));
+  const toggle = `<button class="btn-link btn-expand" type="button" data-expand="${a.id}" aria-expanded="${expanded.has(a.id)}">${expanded.has(a.id) ? '收合模組' : '展開全部模組'}</button>`;
+  if (NO_DEFAULT_ACCOUNTS.has(a.id)) {
+    const chips = usable.map(([, name]) => `<span class="chip plain">${esc(name)}</span>`).join('');
+    return `<div class="mods-sum">${usable.length} / ${MODULES.length} 可用<small>只有開通的模組可用</small></div><div class="chips">${chips}</div>${toggle}`;
+  }
+  const exc = exceptionsOf(a);
+  const body = exc.length
+    ? `<div class="chips">${exc.map((e) => `<span class="chip ${e.cls}">${esc(e.text)}</span>`).join('')}</div>`
+    : '<div class="mods-none">全部預設可用，沒有個別設定</div>';
+  return `<div class="mods-sum">${usable.length} / ${MODULES.length} 可用</div>${body}${toggle}`;
+}
+function detailRow(a) {
+  const cells = MODULES.map(([code, name]) => {
+    const st = moduleState(a, code);
+    const label = { default: '預設可用', granted: '已開通', denied: '已拒絕', expired: `期限外${st.until ? `（至 ${st.until}）` : ''}`, none: '未開通' }[st.s];
+    const note = isLimited(st) ? `<span class="note">${esc(limitText(st))}${st.hidden ? `：${esc(st.hidden.join('、'))}` : ''}</span>` : '';
+    return `<div class="mod-cell st-${st.s}"><span class="n">${esc(name)}</span><span class="c">${code}</span><span class="s">${label}</span>${note}</div>`;
+  }).join('');
+  return `<tr class="detail ${a.type === 'partner' ? 'readonly' : ''}"><td colspan="6"><div class="mod-grid">${cells}</div></td></tr>`;
+}
+function accountCell(a) {
+  const tags = (a.restricted ? '<span class="tag lock">已設限制</span>' : '') + (a.codeFilter ? '<span class="tag code">程式設定</span>' : '');
+  return `<div class="mono">${esc(a.username)}${tags}</div><div class="acct-title">${esc(a.title)}</div>`;
+}
+function pwCell(a) {
+  if (a.type === 'partner') {
+    return `<div class="pw"><span class="pw-mask">••••••••</span><span class="pw-hint">共用帳號，重設請洽工程</span></div>`;
+  }
+  return `<div class="pw"><span class="pw-mask">••••••••</span><button class="btn btn-sm" type="button" data-reset="${a.id}">重設密碼</button><button class="btn btn-sm" type="button" data-mail="${a.id}">${a.mailed ? '重新寄送' : '寄送密碼函'}</button><span class="pw-hint">無法查看，只能重設${a.mailed ? `；${esc(a.mailed)}` : ''}</span></div>`;
+}
+function actionCell(a) {
+  return a.type === 'partner'
+    ? `<button class="btn-link" type="button" data-view="${a.id}">檢視</button>`
+    : `<button class="btn-link" type="button" data-view="${a.id}">管理</button>`;
+}
+
+function render() {
+  const q = $('q').value.trim().toLowerCase();
+  const fs = $('f-status').value, ft = $('f-type').value, showOff = $('f-off').checked;
+  const fm = $('f-mod').value, onlyExc = $('f-exc').checked;
+  const list = accounts.filter((a) => {
+    if (!showOff && a.status === 'off' && fs !== 'off') return false;
+    if (fs && a.status !== fs) return false;
+    if (ft && a.type !== ft) return false;
+    if (fm && onlyExc) {
+      const st = moduleState(a, fm);
+      if (!(st.s === 'denied' || st.s === 'expired' || isLimited(st))) return false;
+    } else if (fm) {
+      if (!isUsable(moduleState(a, fm))) return false;
+    } else if (onlyExc && !exceptionsOf(a).length) return false;
+    if (!q) return true;
+    const hay = [a.username, a.title, ...a.companies.map((c) => `${c.name} ${c.code} ${c.sn}`)].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  $('rows').innerHTML = list.length
+    ? list.map((a) => `<tr class="${a.type === 'partner' ? 'readonly' : ''}"><td>${companyCell(a)}</td><td>${apiCell(a)}</td><td>${modsCell(a)}</td><td>${accountCell(a)}</td><td>${pwCell(a)}</td><td class="actions">${actionCell(a)}</td></tr>${expanded.has(a.id) ? detailRow(a) : ''}`).join('')
+    : `<tr><td colspan="6" style="text-align:center;color:var(--fg4);padding:32px">沒有符合條件的連線帳號</td></tr>`;
+  $('count').textContent = `共 ${list.length} 個帳號`;
+}
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => { t.hidden = true; }, 2200);
+}
+function randUser() {
+  const cs = 'abcdefghijklmnopqrstuvwxyz0123456789', b = new Uint8Array(10);
+  crypto.getRandomValues(b); return Array.from(b, (x) => cs[x % cs.length]).join('');
+}
+function randPw(user) {
+  const b = new Uint8Array(20); crypto.getRandomValues(b);
+  const hex = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return hex.slice((user.length + 1 + 40) % 3);
+}
+function copy(text, label) {
+  const done = () => toast(`已複製${label}`);
+  try { navigator.clipboard.writeText(text).then(done, () => toast('瀏覽器不允許複製，請手動選取')); }
+  catch (e) { toast('瀏覽器不允許複製，請手動選取'); }
+}
+function credBlock(user, pw, prefix) {
+  const auth = 'Basic ' + btoa(`${user}:${pw}`);
+  return `
+    <div class="cred">
+      <div class="cred-row"><span class="k">帳號</span><span class="v">${esc(user)}</span><button class="btn btn-sm" type="button" data-copy="${esc(user)}" data-label="帳號">複製</button></div>
+      <div class="cred-row"><span class="k">密碼</span><span class="v">${esc(pw)}</span><button class="btn btn-sm" type="button" data-copy="${esc(pw)}" data-label="密碼">複製</button></div>
+      <div class="cred-row"><span class="k">Authorization</span><span class="v">${esc(auth)}</span><button class="btn btn-sm" type="button" data-copy="${esc(auth)}" data-label=" Authorization">複製</button></div>
+    </div>
+    <div class="field"><span class="help">請用下方「寄送密碼函」交付給客戶；不寄信、改用其他方式交付時，先複製帳密再勾選下面這項。關閉後無法再看到密碼。</span></div>
+    <label class="check"><input type="checkbox" id="${prefix}-ack"> <span>我已用其他方式交付帳密</span></label>`;
+}
+function open(id) { $(id).hidden = false; const f = $(id).querySelector('input, select, button'); if (f) f.focus(); }
+function close(id) { $(id).hidden = true; }
+
+/* create flow */
+/* 公司下拉：點開列出全部公司，輸入關鍵字即時篩選 */
+const existingAccounts = (sn) => accounts.filter((a) => a.type === 'general' && a.status !== 'off' && a.companies.some((c) => c.sn === sn));
+const hl = (text, q) => {
+  const s = esc(text);
+  if (!q) return s;
+  const i = text.toLowerCase().indexOf(q);
+  return i < 0 ? s : esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+};
+let comboItems = [], comboActive = -1;
+function renderCombo() {
+  const q = $('c-company-q').value.trim().toLowerCase();
+  comboItems = companyPool.filter((c) => !q || `${c.name} ${c.code} ${c.sn}`.toLowerCase().includes(q));
+  const lis = comboItems.map((c, i) => {
+    const tags = [];
+    if (c.st === '2') tags.push('<span class="ctag pending">未開通</span>');
+    if (c.st === '0') tags.push('<span class="ctag closed">已停用，不能建立</span>');
+    if (c.st !== '0' && !c.bpm) tags.push('<span class="ctag nobpm">BPM 未建立</span>');
+    const n = existingAccounts(c.sn).length;
+    if (n) tags.push(`<span class="ctag has">已有 ${n} 個帳號</span>`);
+    return `<li role="option" id="combo-${i}" data-sn="${c.sn}" aria-selected="${i === comboActive}" aria-disabled="${c.st === '0'}"><span>${hl(c.name, q)}</span>${tags.join('')}<span class="sub">${hl(c.code, q)} · ${hl(String(c.sn), q)}</span></li>`;
+  });
+  const foot = `<li class="foot">${q ? `符合 ${comboItems.length} 家` : `全部 ${companyPool.length} 家`}（正式版捲動時再往下載入）</li>`;
+  $('c-company-list').innerHTML = (lis.length ? lis.join('') : '<li class="foot">找不到符合的公司</li>') + foot;
+}
+function openCombo() { $('c-company-list').hidden = false; $('c-company-q').setAttribute('aria-expanded', 'true'); renderCombo(); }
+function closeCombo() { $('c-company-list').hidden = true; $('c-company-q').setAttribute('aria-expanded', 'false'); comboActive = -1; }
+function pickCompany(sn) {
+  const c = companyPool.find((x) => x.sn === Number(sn));
+  if (!c || c.st === '0') return;
+  $('c-company').value = c.sn;
+  $('c-company-q').value = `${c.name}（${c.code} · ${c.sn}）`;
+  closeCombo(); updatePreview(); renderCompanyHint();
+}
+function renderCompanyHint() {
+  const c = companyPool.find((x) => String(x.sn) === $('c-company').value);
+  if (!c) { $('c-company-hint').innerHTML = ''; return; }
+  const hints = [];
+  if (c.st === '2') hints.push('<div class="warn">這家公司還沒開通：帳號可以先建，但公司開通前呼叫 API 都會回 403。</div>');
+  if (!c.bpm) hints.push('<div class="warn">BPM 還沒建立這家公司：HRM API 可以用，BPM API 暫時不能用。公司開始使用 BPM 後，要在帳號頁按「重新同步 BPM」。</div>');
+  const ex = existingAccounts(c.sn);
+  if (ex.length) hints.push(`<div class="field"><span class="help">這家公司已有 ${ex.length} 個連線帳號：${ex.map((a) => esc(a.title)).join('、')}。確認不是同一個用途再建立。</span></div>`);
+  $('c-company-hint').innerHTML = hints.join('');
+}
+$('c-company-q').addEventListener('focus', openCombo);
+$('c-company-q').addEventListener('click', openCombo);
+$('c-company-q').addEventListener('input', () => { $('c-company').value = ''; comboActive = -1; openCombo(); updatePreview(); renderCompanyHint(); });
+$('c-company-q').addEventListener('keydown', (e) => {
+  if ($('c-company-list').hidden && e.key === 'ArrowDown') { openCombo(); return; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const max = comboItems.length - 1; if (max < 0) return;
+    comboActive = e.key === 'ArrowDown' ? Math.min(max, comboActive + 1) : Math.max(0, comboActive - 1);
+    renderCombo(); const el = $(`combo-${comboActive}`); if (el) el.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault(); if (comboItems[comboActive]) pickCompany(comboItems[comboActive].sn);
+  } else if (e.key === 'Escape') { e.stopPropagation(); closeCombo(); }
+});
+$('c-company-list').addEventListener('mousedown', (e) => { const li = e.target.closest('li[data-sn]'); if (li) { e.preventDefault(); pickCompany(li.dataset.sn); } });
+$('c-company-q').addEventListener('blur', () => setTimeout(closeCombo, 120));
+function fillCompanies() { $('c-company').value = ''; $('c-company-q').value = ''; $('c-company-hint').innerHTML = ''; }
+function updatePreview() {
+  const c = companyPool.find((x) => String(x.sn) === $('c-company').value);
+  const p = $('c-purpose').value.trim();
+  $('c-preview').textContent = c ? (p ? `${c.name}-${p}` : c.name) : '（先選公司）';
+}
+/* 建立帳號時選 API、操作與員工資料要隱藏的欄位 */
+const OPS = ['查詢', '新增', '修改', '刪除'];
+/* 各模組在對外 API 文件（docs/apis/dealer/*.yaml，即 /api/docs）上有的操作 */
+const MOD_OPS = {
+  users: OPS, dept: OPS, leave: OPS, overtime: OPS, tmpleave: OPS, ip_setting: OPS, ip_management: OPS, standard_shift: OPS,
+  attendance: ['查詢', '新增'],
+  option_tmpleave: ['查詢'], salaries: ['查詢'], notification: ['查詢'], efficient_shift: ['查詢'],
+  rule_timeoff: ['查詢'], rule_holiday: ['查詢'], rule_clockin: ['查詢'], rule_audit: ['查詢'], rule_overtime: ['查詢'],
+};
+const opsOf = (code) => MOD_OPS[code] || OPS;
+const isPartialOps = (code, m) => m.ops.size < opsOf(code).length;
+const GROUPS = [
+  ['人事', ['users', 'dept', 'tmpleave', 'option_tmpleave']],
+  ['出勤與排班', ['attendance', 'efficient_shift', 'standard_shift']],
+  ['請假與加班', ['leave', 'overtime']],
+  ['薪資', ['salaries']],
+  ['規則', ['rule_timeoff', 'rule_holiday', 'rule_clockin', 'rule_audit', 'rule_overtime', 'ip_setting', 'ip_management']],
+  ['通知', ['notification']],
+];
+const PICKABLE = GROUPS.flatMap(([, codes]) => codes);
+/* 員工資料對外欄位（default.filter.php 的 users），u_no 是識別欄位不能隱藏 */
+const USER_FIELDS = [
+  ['證件', [['id_no', '身分證號碼'], ['passport_name', '護照英文姓名'], ['passport_no', '護照號碼'], ['resident_no', '居留證號碼']]],
+  ['個人資料', [['birthday', '生日'], ['sex', '性別'], ['marriage', '婚姻'], ['military_service', '兵役'], ['military_retired_year', '退役年'], ['military_retired_month', '退役月'], ['disability_type', '身心障礙類別'], ['disability_remark', '身心障礙說明'], ['identity_type', '身分族群'], ['u_country', '國家別']]],
+  ['聯絡方式', [['mobile1', '手機 1'], ['mobile2', '手機 2'], ['phone2', '電話 2'], ['email', 'Email'], ['home_address', '地址'], ['zip_code', '郵遞區號'], ['mail_address', '通訊地址']]],
+  ['緊急聯絡人', [['contact1', '聯絡人 1'], ['contact1_phone1', '聯絡人 1 電話'], ['contact1_phone2', '聯絡人 1 手機'], ['contact1_relation', '聯絡人 1 關係'], ['contact1_remark', '聯絡人 1 備註'], ['contact2', '聯絡人 2'], ['contact2_phone1', '聯絡人 2 電話'], ['contact2_phone2', '聯絡人 2 手機'], ['contact2_relation', '聯絡人 2 關係'], ['contact2_remark', '聯絡人 2 備註']]],
+  ['備註', [['remark', '人資備註'], ['leader_remark', '主管備註']]],
+  ['任職', [['c_name', '中文姓名'], ['first_name', '英文名'], ['last_name', '英文姓'], ['d_name', '部門名稱'], ['d_code', '部門代碼'], ['title_name', '職稱'], ['work_status', '在職狀態'], ['employment_type', '員工類型'], ['job_grade', '職等'], ['arrive_date', '到職日'], ['leave_date', '離職日'], ['card_no', '打卡卡號'], ['phone1', '電話 1'], ['ext_no', '分機']]],
+];
+/* 員工資料底下的子項目：整項不開放時，對應端點回 403 */
+const USER_SCOPES = [
+  ['education', '學歷', 'user/education'], ['experience', '經歷（含前公司薪資）', 'user/experience'],
+  ['leave_reason', '離職原因', 'user/users/leaveReason'], ['notification', '電子郵件通知設定', 'user/users/notification'],
+  ['main_dept', '主要部門歷程', 'user/main_dept'], ['sub_dept', '附屬部門歷程', 'user/sub_dept'],
+];
+const SCOPE_LABEL = Object.fromEntries(USER_SCOPES.map(([k, n]) => [k, n]));
+const FIELD_LABEL = Object.fromEntries(USER_FIELDS.flatMap(([, fs]) => fs));
+const PRESETS = {
+  id: ['id_no', 'passport_name', 'passport_no', 'resident_no'],
+  personal: ['id_no', 'passport_name', 'passport_no', 'resident_no', 'birthday', 'marriage', 'military_service', 'military_retired_year', 'military_retired_month', 'disability_type', 'disability_remark', 'identity_type', 'mobile1', 'mobile2', 'phone2', 'home_address', 'zip_code', 'mail_address', 'contact1', 'contact1_phone1', 'contact1_phone2', 'contact1_relation', 'contact1_remark', 'contact2', 'contact2_phone1', 'contact2_phone2', 'contact2_relation', 'contact2_remark'],
+};
+let cs;
+const TODAY = '2026-10-21';
+const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const ipToNum = (ip) => ip.split('.').reduce((n, x) => n * 256 + Number(x), 0);
+function ipError(s) {
+  const parts = s.split('~').map((x) => x.trim());
+  if (parts.length > 2 || parts.some((x) => !IPV4.test(x))) return `「${s}」不是 IPv4 位址或區間（例：52.194.94.67 或 111.235.241.34~111.235.241.36）`;
+  if (parts.length === 2 && ipToNum(parts[0]) > ipToNum(parts[1])) return `「${s}」的起始位址大於結束位址`;
+  return '';
+}
+const fakeIps = (n) => Array.from({ length: n }, (_, i) => (i === 0 ? '52.194.94.67' : `111.235.241.${30 + i}~111.235.241.${36 + i}`));
+const labelToKey = (map, label) => Object.keys(map).find((k) => map[k] === label);
+function blankMod(code) { return { on: true, ops: new Set(opsOf(code)), from: '', until: '', ip: [], adv: false }; }
+
+/* 建立與管理共用同一份狀態：管理時從帳號現有設定載入 */
+function resetCreateState(acct) {
+  cs = { formMode: acct ? 'manage' : 'create', acct: acct || null, readonly: !!(acct && acct.type === 'partner'),
+    mode: 'default', mods: {}, hidden: new Set(), blocked: new Set(),
+    companies: { on: false, ack: false, wasOn: false },
+    acctFrom: acct ? acct.from : TODAY, acctUntil: acct ? acct.until : '', ipMode: 'none', ips: [], status: acct ? acct.status : 'on' };
+  PICKABLE.forEach((code) => { cs.mods[code] = blankMod(code); });
+  if (!acct) return;
+  cs.mode = NO_DEFAULT_ACCOUNTS.has(acct.id) ? 'strict' : 'default';
+  const ips = acct.ipList || [];
+  cs.ipMode = ips.length ? 'only' : 'none'; cs.ips = ips.slice();
+  PICKABLE.forEach((code) => {
+    const st = moduleState(acct, code);
+    const m = cs.mods[code];
+    m.on = st.s === 'default' || st.s === 'granted' || st.s === 'expired';
+    if (st.ops) m.ops = new Set(st.ops);
+    m.from = st.from || ''; m.until = st.until || '';
+    m.ip = st.ipList ? st.ipList.slice() : (st.ip ? fakeIps(st.ip) : []);
+    m.adv = !!(m.from || m.until || m.ip.length);
+    if (code === 'users') {
+      (st.hidden || []).forEach((l) => { const k = labelToKey(FIELD_LABEL, l); if (k) cs.hidden.add(k); });
+      (st.blocked || []).forEach((l) => { const k = labelToKey(SCOPE_LABEL, l); if (k) cs.blocked.add(k); });
+    }
+  });
+  const co = moduleState(acct, 'companies');
+  cs.companies.on = cs.companies.wasOn = co.s === 'granted';
+}
+function ipListHtml(list, attr) {
+  const rows = list.map((v, i) => `<div class="ip-row"><input type="text" value="${esc(v)}" data-${attr}="${i}" placeholder="52.194.94.67 或 111.235.241.34~111.235.241.36" aria-label="IP 位址"><button class="btn btn-sm" type="button" data-${attr}-del="${i}">刪除</button></div>`).join('');
+  return `${rows}<button class="btn btn-sm" type="button" data-${attr}-add>+ 新增 IP</button>`;
+}
+function modAdvPanel(code, m) {
+  const expired = m.until && m.until < TODAY;
+  return `<div class="adv-panel">
+    <div class="adv-row"><span class="adv-label">有效期限</span><input type="date" value="${m.from}" data-mfrom="${code}" aria-label="開始日"> ~ <input type="date" value="${m.until}" data-muntil="${code}" aria-label="結束日"><span class="help">${expired ? '<b style="color:var(--warning-fg)">已過期：這個 API 目前會回 403</b>' : '留空＝無期限'}</span></div>
+    <div class="adv-row"><span class="adv-label">這支 API 另限 IP</span><div class="ip-list">${ipListHtml(m.ip, `mip-${code}`)}</div></div>
+    <div class="help">帳號層的 IP 限制已經套用到所有 API；這裡只在某支 API 要另外收緊時才填。</div>
+  </div>`;
+}
+function renderModPicker() {
+  const opBtns = (code, m) => (opsOf(code).length === 1 ? '<span class="chip plain">唯讀</span>' : opsOf(code).map((op) => `<button class="op" type="button" data-op="${op}" data-opmod="${code}" aria-pressed="${m.ops.has(op)}" ${m.on ? '' : 'disabled'}>${op}</button>`).join(''));
+  const badges = (m) => [m.until && m.until < TODAY ? '<span class="chip expired">期限外</span>' : (m.from || m.until ? '<span class="chip plain">有期限</span>' : ''), m.ip.filter(Boolean).length ? `<span class="chip limit">IP ${m.ip.filter(Boolean).length} 組</span>` : ''].join('');
+  const offLabel = cs.mode === 'default' ? '<span class="chip denied">拒絕</span>' : '<span class="chip plain">未開通</span>';
+  const html = GROUPS.map(([g, codes]) => {
+    const rows = codes.map((code) => {
+      const m = cs.mods[code];
+      const row = `<div class="mrow ${m.on ? '' : 'off'}"><label><input type="checkbox" data-mod="${code}" ${m.on ? 'checked' : ''}> ${esc(MOD_NAME[code])} <span class="c">${code}</span>${m.on ? badges(m) : offLabel}</label><div class="ops">${opBtns(code, m)}${m.on ? `<button class="btn-link" type="button" data-adv="${code}">${m.adv ? '收合進階' : '期限、IP'}</button>` : ''}</div></div>`;
+      return row + (m.on && m.adv ? modAdvPanel(code, m) : '') + (code === 'users' && m.on ? fieldsPanel() : '');
+    }).join('');
+    return `<fieldset class="mgroup"><legend>${g}</legend>${rows}</fieldset>`;
+  }).join('') + companiesRow();
+  $('c-mods').innerHTML = html;
+  const on = PICKABLE.filter((c) => cs.mods[c].on).length;
+  $('c-modcount').textContent = `已勾選 ${on} / ${PICKABLE.length} 個`;
+}
+function companiesRow() {
+  const c = cs.companies;
+  const warn = c.on && !c.wasOn
+    ? `<div class="danger-box">這組 API 不檢查公司：可以建立、修改公司，縮短合約，調整帳號數上限。只開給經銷商或鼎新 A1 這類需要管理旗下公司的帳號。
+        <label class="check" style="margin-top:6px"><input type="checkbox" data-companies-ack ${c.ack ? 'checked' : ''}> <span>我確認這個帳號需要管理公司的權限</span></label></div>`
+    : '';
+  return `<fieldset class="mgroup special"><legend>特殊開通</legend>
+    <div class="mrow ${c.on ? '' : 'off'}"><label><input type="checkbox" data-companies ${c.on ? 'checked' : ''}> 經銷所屬公司資料 <span class="c">companies</span>${c.on ? '<span class="chip special">已開通</span>' : '<span class="chip plain">預設不開</span>'}</label><div class="ops"><span class="help">預設不開放，要用才開通</span></div></div>
+    ${warn}</fieldset>`;
+}
+function renderAcctSection() {
+  $('c-from').value = cs.acctFrom; $('c-until').value = cs.acctUntil;
+  document.querySelectorAll('input[name="c-ipmode"]').forEach((r) => { r.checked = r.value === cs.ipMode; });
+  $('c-iplist').hidden = cs.ipMode !== 'only';
+  $('c-iplist').innerHTML = ipListHtml(cs.ips, 'aip');
+  document.querySelectorAll('input[name="c-mode"]').forEach((r) => { r.checked = r.value === cs.mode; });
+  document.querySelectorAll('input[name="c-status"]').forEach((r) => { r.checked = r.value === (cs.status === 'off' ? 'off' : 'on'); });
+}
+function fieldsPanel() {
+  const groups = USER_FIELDS.map(([g, fs]) => {
+    const boxes = fs.map(([k, label]) => `<label class="${cs.hidden.has(k) ? 'hide-on' : ''}"><input type="checkbox" data-field="${k}" ${cs.hidden.has(k) ? 'checked' : ''}> ${esc(label)} <span class="k">${k}</span></label>`).join('');
+    return `<div><div class="fgroup-title">${g}<button class="btn-link" type="button" data-fgroup="${esc(g)}">整組隱藏</button></div><div class="fgrid">${boxes}</div></div>`;
+  }).join('');
+  const scopes = USER_SCOPES.map(([k, label, path]) => `<label class="${cs.blocked.has(k) ? 'hide-on' : ''}"><input type="checkbox" data-scope="${k}" ${cs.blocked.has(k) ? '' : 'checked'}> ${esc(label)} <span class="k">${path}</span></label>`).join('');
+  return `<div class="fields-panel">
+    <div class="head-row"><strong>員工資料：可存取的資料範圍</strong><span class="count">${cs.blocked.size ? `${cs.blocked.size} 項不開放` : '全部開放'}</span></div>
+    <div class="fgrid"><label><input type="checkbox" checked disabled> 基本資料 <span class="k">user/users</span></label>${scopes}</div>
+    <div class="fields-note">取消勾選的項目，對應的 API 一律回 403。基本資料是員工資料的主體，不能整項關閉，請用下方逐欄隱藏。</div>
+    <div class="head-row" style="border-top:1px dashed var(--border-strong);padding-top:10px"><strong>基本資料：勾選要隱藏的欄位</strong>
+      <button class="btn btn-sm" type="button" data-preset="id">隱藏證件類</button>
+      <button class="btn btn-sm" type="button" data-preset="personal">隱藏個資類</button>
+      <button class="btn btn-sm" type="button" data-preset="clear">全部顯示</button>
+      <span class="count">已隱藏 ${cs.hidden.size} 欄</span></div>
+    ${groups}
+    <div class="fields-note">被隱藏的欄位：查詢時不回傳；新增、修改或用它當篩選條件時回錯誤。員工編號（u_no）是指定人員的識別欄位，不能隱藏。</div>
+  </div>`;
+}
+function summarize() {
+  const lines = [];
+  const on = PICKABLE.filter((c) => cs.mods[c].on);
+  const off = PICKABLE.filter((c) => !cs.mods[c].on);
+  lines.push(cs.mode === 'default'
+    ? `預設全開：${on.length} 個可用${off.length ? `，${off.map((c) => MOD_NAME[c]).join('、')} 改成拒絕` : ''}；之後新上架的 API 自動開放`
+    : `只開勾選的：${on.length} 個可用；之後新上架的 API 不會自動開放`);
+  const ips = cs.ipMode === 'only' ? cs.ips.filter(Boolean) : [];
+  lines.push(ips.length ? `IP 限制：只允許 ${ips.join('、')}` : 'IP 限制：不限制');
+  on.forEach((c) => {
+    const m = cs.mods[c];
+    const parts = [];
+    if (isPartialOps(c, m)) parts.push(`只能${opsOf(c).filter((o) => m.ops.has(o)).join('、') || '（無操作）'}`);
+    if (c === 'users' && cs.blocked.size) parts.push(`不開放${[...cs.blocked].map((k) => SCOPE_LABEL[k]).join('、')}`);
+    if (c === 'users' && cs.hidden.size) parts.push(`隱藏 ${cs.hidden.size} 欄（${[...cs.hidden].slice(0, 4).map((k) => FIELD_LABEL[k]).join('、')}${cs.hidden.size > 4 ? '…' : ''}）`);
+    if (m.from || m.until) parts.push(`期限 ${m.from || '即日'} ~ ${m.until || '無期限'}`);
+    if (m.ip.filter(Boolean).length) parts.push(`另限 IP ${m.ip.filter(Boolean).length} 組`);
+    if (parts.length) lines.push(`${MOD_NAME[c]}：${parts.join('，')}`);
+  });
+  if (cs.companies.on) lines.push('特殊開通：經銷所屬公司資料');
+  return lines;
+}
+/* 存檔前檢查：回傳錯誤訊息，沒有錯誤回空字串 */
+function validateForm() {
+  if (!PICKABLE.some((m) => cs.mods[m].on) && !cs.companies.on) return '至少要開一個 API';
+  if (cs.ipMode === 'only' && !cs.ips.some((x) => x.trim())) return '選了「只允許以下 IP」，至少要填一組 IP';
+  const allIps = [...(cs.ipMode === 'only' ? cs.ips : []), ...PICKABLE.flatMap((c) => (cs.mods[c].on ? cs.mods[c].ip : []))].map((x) => x.trim()).filter(Boolean);
+  const bad = allIps.map(ipError).find(Boolean);
+  if (bad) return bad;
+  const badPeriod = PICKABLE.find((c) => cs.mods[c].from && cs.mods[c].until && cs.mods[c].from > cs.mods[c].until);
+  if (badPeriod) return `${MOD_NAME[badPeriod]} 的開始日晚於結束日`;
+  if (cs.acctUntil && cs.acctFrom > cs.acctUntil) return '帳號的開始日晚於結束日';
+  if (cs.companies.on && !cs.companies.wasOn && !cs.companies.ack) return '開通「經銷所屬公司資料」前，請先勾選確認';
+  return '';
+}
+function applySettings(acct) {
+  const st = {};
+  PICKABLE.forEach((c) => {
+    const m = cs.mods[c];
+    if (!m.on) { if (cs.mode === 'default') st[c] = { s: 'denied' }; return; }
+    const ipList = m.ip.map((x) => x.trim()).filter(Boolean);
+    const limited = isPartialOps(c, m) || (c === 'users' && (cs.hidden.size || cs.blocked.size)) || m.from || m.until || ipList.length;
+    if (cs.mode === 'strict' || limited) {
+      const row = { s: 'granted' };
+      if (isPartialOps(c, m)) row.ops = opsOf(c).filter((o) => m.ops.has(o));
+      if (c === 'users' && cs.blocked.size) row.blocked = [...cs.blocked].map((k) => SCOPE_LABEL[k]);
+      if (c === 'users' && cs.hidden.size) row.hidden = [...cs.hidden].map((k) => FIELD_LABEL[k]);
+      if (m.from) row.from = m.from;
+      if (m.until) row.until = m.until;
+      if (ipList.length) { row.ip = ipList.length; row.ipList = ipList; }
+      st[c] = row;
+    }
+  });
+  if (cs.companies.on) st.companies = { s: 'granted' };
+  settings[acct.id] = st;
+  cs.mode === 'strict' ? NO_DEFAULT_ACCOUNTS.add(acct.id) : NO_DEFAULT_ACCOUNTS.delete(acct.id);
+  acct.ipList = cs.ipMode === 'only' ? cs.ips.map((x) => x.trim()).filter(Boolean) : [];
+  acct.from = cs.acctFrom || TODAY; acct.until = cs.acctUntil;
+  acct.status = cs.status === 'off' ? 'off' : (acct.until && acct.until < TODAY ? 'exp' : 'on');
+  acct.restricted = Object.values(st).some((r) => r.ops || r.hidden || r.blocked || r.ipList) || acct.ipList.length > 0;
+}
+
+/* 表單事件：建立與管理共用 */
+const formEl = () => $('ov-create').querySelector('#create-step1');
+$('ov-create').addEventListener('click', (e) => {
+  if (cs.readonly) return;
+  const t = e.target;
+  const op = t.closest('[data-op]');
+  if (op) { const m = cs.mods[op.dataset.opmod]; m.ops.has(op.dataset.op) ? m.ops.delete(op.dataset.op) : m.ops.add(op.dataset.op); renderModPicker(); return; }
+  const adv = t.closest('[data-adv]');
+  if (adv) { const m = cs.mods[adv.dataset.adv]; m.adv = !m.adv; renderModPicker(); return; }
+  const pr = t.closest('[data-preset]');
+  if (pr) { cs.hidden = pr.dataset.preset === 'clear' ? new Set() : new Set([...cs.hidden, ...PRESETS[pr.dataset.preset]]); renderModPicker(); return; }
+  const fg = t.closest('[data-fgroup]');
+  if (fg) { USER_FIELDS.find(([n]) => n === fg.dataset.fgroup)[1].forEach(([k]) => cs.hidden.add(k)); renderModPicker(); return; }
+  if (t.closest('[data-aip-add]')) { cs.ips.push(''); renderAcctSection(); return; }
+  const ad = t.closest('[data-aip-del]');
+  if (ad) { cs.ips.splice(Number(ad.dataset.aipDel), 1); renderAcctSection(); return; }
+  for (const code of PICKABLE) {
+    if (t.closest(`[data-mip-${code}-add]`)) { cs.mods[code].ip.push(''); renderModPicker(); return; }
+    const d = t.closest(`[data-mip-${code}-del]`);
+    if (d) { cs.mods[code].ip.splice(Number(d.getAttribute(`data-mip-${code}-del`)), 1); renderModPicker(); return; }
+  }
+});
+$('ov-create').addEventListener('change', (e) => {
+  if (cs.readonly) return;
+  const d = e.target.dataset;
+  if (d.mod) { cs.mods[d.mod].on = e.target.checked; renderModPicker(); }
+  if (d.scope) { e.target.checked ? cs.blocked.delete(d.scope) : cs.blocked.add(d.scope); renderModPicker(); }
+  if (d.field) { e.target.checked ? cs.hidden.add(d.field) : cs.hidden.delete(d.field); renderModPicker(); }
+  if ('companies' in d) { cs.companies.on = e.target.checked; cs.companies.ack = false; renderModPicker(); }
+  if ('companiesAck' in d) { cs.companies.ack = e.target.checked; }
+  if (d.mfrom) { cs.mods[d.mfrom].from = e.target.value; renderModPicker(); }
+  if (d.muntil) { cs.mods[d.muntil].until = e.target.value; renderModPicker(); }
+  if (e.target.name === 'c-mode') { cs.mode = e.target.value; renderModPicker(); }
+  if (e.target.name === 'c-ipmode') { cs.ipMode = e.target.value; if (cs.ipMode === 'only' && !cs.ips.length) cs.ips.push(''); renderAcctSection(); }
+  if (e.target.name === 'c-status') { cs.status = e.target.value; }
+  if (e.target.id === 'c-from') cs.acctFrom = e.target.value;
+  if (e.target.id === 'c-until') cs.acctUntil = e.target.value;
+});
+$('ov-create').addEventListener('input', (e) => {
+  const d = e.target.dataset;
+  if (d.aip !== undefined) cs.ips[Number(d.aip)] = e.target.value;
+  for (const code of PICKABLE) { const v = e.target.getAttribute(`data-mip-${code}`); if (v !== null) cs.mods[code].ip[Number(v)] = e.target.value; }
+});
+$('c-all').addEventListener('click', () => { if (cs.readonly) return; PICKABLE.forEach((c) => { cs.mods[c].on = true; }); renderModPicker(); });
+$('c-none').addEventListener('click', () => { if (cs.readonly) return; PICKABLE.forEach((c) => { cs.mods[c].on = false; }); renderModPicker(); });
+$('c-readonly').addEventListener('click', () => { if (cs.readonly) return; PICKABLE.forEach((c) => { cs.mods[c].ops = new Set(['查詢']); }); renderModPicker(); });
+
+function openForm(acct) {
+  resetCreateState(acct);
+  const manage = !!acct;
+  $('create-title').textContent = manage ? (cs.readonly ? '檢視連線帳號' : '管理連線帳號') : '建立連線帳號';
+  $('c-create-fields').hidden = manage;
+  $('c-manage-head').hidden = !manage;
+  $('c-create-warn').hidden = manage;
+  $('c-submit').textContent = manage ? '儲存' : '建立帳號';
+  $('c-submit').hidden = cs.readonly;
+  $('create-step1').classList.toggle('readonly', cs.readonly);
+  if (manage) {
+    $('c-manage-head').innerHTML = `
+      ${cs.readonly ? `<div class="warn">${esc(acct.partnerName)}的帳號由旗下 ${acct.companies.length} 家公司共用，這裡只能看。要調整請洽工程。</div>` : ''}
+      <div class="manage-id"><span class="mono">${esc(acct.username)}</span><span class="sub">帳號序號 ${acct.id}</span></div>
+      <div class="field"><label for="c-title">帳號名稱</label><input id="c-title" value="${esc(acct.title)}" maxlength="60" ${cs.readonly ? 'disabled' : ''}></div>
+      <div class="field"><label>公司</label><div class="title-preview">${acct.type === 'partner' ? `旗下 ${acct.companies.length} 家公司` : acct.companies.map((c) => `${esc(c.name)}（${esc(c.code)} · ${c.sn}）`).join('<br>')}</div></div>
+      <div class="field"><label>帳號狀態</label><div class="mode mode-inline" role="radiogroup" aria-label="帳號狀態">
+        <label><input type="radio" name="c-status" value="on"> <span>啟用</span></label>
+        <label><input type="radio" name="c-status" value="off"> <span>停用<small>停用後所有 API 呼叫立即被拒絕；帳密保留，可以再啟用</small></span></label>
+      </div></div>`;
+  } else {
+    $('create-step1').hidden = false; $('create-step2').hidden = true; $('c-purpose').value = '';
+    fillCompanies(); updatePreview();
+  }
+  $('create-step1').hidden = false; $('create-step2').hidden = true;
+  renderAcctSection(); renderModPicker(); open('ov-create');
+}
+$('btn-create').addEventListener('click', () => openForm(null));
+$('c-purpose').addEventListener('input', updatePreview);
+$('c-submit').addEventListener('click', () => {
+  const err = validateForm();
+  if (err) { toast(err); return; }
+  if (cs.formMode === 'manage') {
+    const a = cs.acct;
+    a.title = $('c-title').value.trim() || a.title;
+    applySettings(a);
+    a.bpm = 'ok';
+    close('ov-create'); render();
+    toast('已儲存。期限、IP、停用這類變更已同步到 BPM');
+    return;
+  }
+  const c = companyPool.find((x) => String(x.sn) === $('c-company').value);
+  if (!c) { toast('請先選公司'); $('c-company-q').focus(); return; }
+  const user = randUser(), pw = randPw(user);
+  const p = $('c-purpose').value.trim();
+  const id = 500 + accounts.length;
+  const acct = { id, type: 'general', companies: [c], title: p ? `${c.name}-${p}` : c.name, username: user, status: 'on', from: TODAY, until: '', bpm: 'ok', restricted: false, codeFilter: false };
+  applySettings(acct);
+  accounts.unshift(acct);
+  const summary = `<div><div class="section-title" style="font-size:14px">開放設定</div><ul class="summary-list">${summarize().map((l) => `<li>${esc(l)}</li>`).join('')}</ul></div>`;
+  $('c-result').innerHTML = `<div class="ok-box">已建立連線帳號，並同步到 BPM：同一組帳密也能呼叫 BPM API。</div>${summary}${credBlock(user, pw, 'c')}`;
+  lastCred.c = { acct, pw };
+  $('create-step1').hidden = true; $('create-step2').hidden = false; $('c-done').disabled = true;
+  $('c-ack').addEventListener('change', (e) => { $('c-done').disabled = !e.target.checked; });
+  render();
+});
+$('c-done').addEventListener('click', () => { close('ov-create'); toast('已建立連線帳號'); });
+
+/* reset flow */
+let resetTarget = null;
+document.addEventListener('click', (e) => {
+  const r = e.target.closest('[data-reset]');
+  if (r) {
+    resetTarget = accounts.find((a) => String(a.id) === r.dataset.reset);
+    $('r-info').innerHTML = `<div class="mono">${esc(resetTarget.username)}</div><div class="acct-title">${esc(resetTarget.title)}</div>`;
+    $('r-confirm').value = ''; $('r-submit').disabled = true;
+    $('reset-step1').hidden = false; $('reset-step2').hidden = true; open('ov-reset');
+  }
+  const c = e.target.closest('[data-copy]');
+  if (c) copy(c.dataset.copy, c.dataset.label);
+  const x = e.target.closest('[data-close]');
+  if (x) close(x.dataset.close);
+  const ex = e.target.closest('[data-expand]');
+  if (ex) { const id = Number(ex.dataset.expand); expanded.has(id) ? expanded.delete(id) : expanded.add(id); render(); }
+  const v = e.target.closest('[data-view]');
+  if (v) openForm(accounts.find((a) => String(a.id) === v.dataset.view));
+});
+$('r-confirm').addEventListener('input', (e) => { $('r-submit').disabled = e.target.value.trim().toLowerCase() !== resetTarget.username; });
+$('r-submit').addEventListener('click', () => {
+  const pw = randPw(resetTarget.username);
+  $('r-result').innerHTML = `<div class="ok-box">舊密碼已失效，新密碼已同步到 BPM。</div>${credBlock(resetTarget.username, pw, 'r')}`;
+  lastCred.r = { acct: resetTarget, pw };
+  $('reset-step1').hidden = true; $('reset-step2').hidden = false; $('r-done').disabled = true;
+  $('r-ack').addEventListener('change', (ev) => { $('r-done').disabled = !ev.target.checked; });
+});
+$('r-done').addEventListener('click', () => { close('ov-reset'); toast('已重設密碼'); });
+
+/* 寄送密碼函
+   - 建立／重設完成畫面：寄出剛產生的密碼，寄出即完成交付，兩個視窗一起關閉
+   - 列表：密碼取不回來，所以「重新寄送」分兩種：只寄帳號資訊（不重設），或重設密碼後寄新的密碼函 */
+const lastCred = {};
+let mailCtx = null;
+const API_BASE = 'https://cloud.nueip.com/api/dealer/';
+const API_DOCS = 'https://cloud.nueip.com/api/docs';
+function mailTemplate(a, withPw) {
+  const co = a.companies[0];
+  const codes = a.companies.map((c) => (a.companies.length > 1 ? `${c.code}（${c.name}）` : c.code)).join('、');
+  const cred = withPw
+    ? `API 帳號：{{帳號}}
+API 密碼：{{密碼}}
+API 金鑰（Authorization header，可直接貼用）：
+{{金鑰}}`
+    : `API 帳號：{{帳號}}
+API 密碼：請使用先前收到的密碼函；需要新的密碼時，請聯繫客服重新設定。`;
+  const notes = withPw
+    ? `1. 為保護貴公司的資料安全，密碼只在這封信提供，請妥善保存。
+2. 同一組帳號密碼也可以呼叫 NUEiP BPM 的 API。
+3. 帳號或密碼外流、遺失時，請聯繫客服重新設定；設定新密碼後，舊密碼就不能再使用。
+4. 請勿轉寄這封信，也不要把密碼寫在程式碼或公開文件裡。`
+    : `1. 需要新的密碼時，請聯繫客服重新設定；設定新密碼後，舊密碼就不能再使用。
+2. 同一組帳號密碼也可以呼叫 NUEiP BPM 的 API。`;
+  return {
+    subject: withPw ? `【NUEiP】API 連線帳號密碼函－${co.name}` : `【NUEiP】API 連線帳號資訊－${co.name}`,
+    body: `${co.name} 您好：
+
+以下是貴公司串接 NUEiP API 使用的連線帳號資訊，請轉交負責系統串接的人員。
+
+帳號名稱：${a.title}
+公司代碼：${codes}（呼叫 API 時以 c_code 參數帶入）
+${cred}
+
+呼叫網址：${API_BASE}
+
+API 文件：${API_DOCS}
+登入文件網頁請使用貴公司的 NUEiP 系統帳號密碼（平常登入 NUEiP 的帳號），不是上面的 API 帳號密碼。
+串接廠商沒有 NUEiP 系統帳號時，也可以用 API 帳號密碼下載 YAML 格式的文件：
+${API_BASE}docs/yaml
+
+注意事項：
+${notes}
+
+NUEiP 客服中心`,
+  };
+}
+const requiredTokens = () => (mailCtx.kind === 'info' ? ['{{帳號}}'] : ['{{帳號}}', '{{密碼}}', '{{金鑰}}']);
+function applyKind() {
+  const t = mailTemplate(mailCtx.acct, mailCtx.kind !== 'info');
+  $('m-subject').value = t.subject; $('m-body').value = t.body;
+  $('m-token-help').textContent = mailCtx.kind === 'info'
+    ? '{{帳號}} 會在寄出時自動填入。可以修改其他文字，但請保留這個代碼。'
+    : '{{帳號}}、{{密碼}}、{{金鑰}} 會在寄出時自動填入，這個視窗裡不顯示密碼。可以修改其他文字，但請保留這三個代碼。';
+  const reset = mailCtx.kind === 'reset';
+  $('m-reset-warn').hidden = !reset;
+  $('m-send').textContent = reset ? '重設密碼並寄出' : '寄出';
+  $('m-send').className = reset ? 'btn btn-danger' : 'btn btn-primary';
+  $('m-send').disabled = reset && !$('m-ack').checked;
+}
+function openMail(acct, pw, ctx) {
+  mailCtx = { acct, pw, ctx, kind: pw ? 'new' : 'info' };
+  $('m-info').innerHTML = `<div class="mono">${esc(acct.username)}</div><div class="acct-title">${esc(acct.title)}</div>${acct.mailed ? `<div class="more">上次寄送：${esc(acct.mailed)}</div>` : ''}`;
+  $('m-mode').innerHTML = pw
+    ? '<div class="ok-box">寄出剛才產生的密碼，不會重設。寄出後就完成交付。</div>'
+    : `<div class="mode" role="radiogroup" aria-label="寄送內容">
+         <label><input type="radio" name="m-kind" value="info" checked> <span>只寄帳號資訊，不重設<small>帳號、公司代碼、呼叫網址和文件連結；不含密碼，客戶的串接不受影響</small></span></label>
+         <label><input type="radio" name="m-kind" value="reset"> <span>重設密碼，寄新的密碼函<small>原本的密碼取不回來，要寄密碼只能產生新的；舊密碼立即失效</small></span></label>
+       </div>
+       <div id="m-reset-warn" class="danger-box" hidden>寄出時產生新密碼，舊密碼立即失效。客戶正在使用這個帳號時，換上新密碼前 HRM 和 BPM 的呼叫都會失敗。
+         <label class="check" style="margin-top:6px"><input type="checkbox" id="m-ack"> <span>我了解寄出後舊密碼會失效</span></label></div>`;
+  if (pw) $('m-mode').insertAdjacentHTML('beforeend', '<div id="m-reset-warn" hidden></div><input type="checkbox" id="m-ack" hidden>');
+  $('m-to').value = acct.lastTo || ''; $('m-cc').value = '';
+  ['m-to-err', 'm-token-err'].forEach((id) => { $(id).hidden = true; });
+  ['m-to', 'm-body'].forEach((id) => $(id).classList.remove('invalid'));
+  $('mail-step1').hidden = false; $('mail-step2').hidden = true;
+  applyKind();
+  document.querySelectorAll('input[name="m-kind"]').forEach((r) => r.addEventListener('change', (e) => { mailCtx.kind = e.target.value; applyKind(); }));
+  $('m-ack').addEventListener('change', applyKind);
+  open('ov-mail');
+  $('m-to').focus();
+}
+const splitMails = (s) => s.split(/[,，;；\s]+/).map((x) => x.trim()).filter(Boolean);
+const isMail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+function showErr(inputId, errId, msg) { $(inputId).classList.add('invalid'); $(errId).textContent = msg; $(errId).className = 'help err'; $(errId).hidden = false; }
+$('m-send').addEventListener('click', () => {
+  const to = splitMails($('m-to').value), cc = splitMails($('m-cc').value);
+  ['m-to', 'm-body'].forEach((id) => $(id).classList.remove('invalid'));
+  ['m-to-err', 'm-token-err'].forEach((id) => { $(id).hidden = true; });
+  const bad = [...to, ...cc].filter((m) => !isMail(m));
+  if (!to.length) { showErr('m-to', 'm-to-err', '請輸入至少一個收件人信箱'); return; }
+  if (bad.length) { showErr('m-to', 'm-to-err', `信箱格式不正確：${bad.join('、')}`); return; }
+  const missing = requiredTokens().filter((k) => !$('m-body').value.includes(k));
+  if (missing.length) { showErr('m-body', 'm-token-err', `信件內容少了 ${missing.join('、')}，客戶會收不到這些資訊`); return; }
+  const a = mailCtx.acct, kind = mailCtx.kind;
+  const what = { new: '密碼函', info: '帳號資訊（不含密碼）', reset: '新的密碼函（已重設）' }[kind];
+  a.mailed = `${what}寄給 ${to.join('、')}，2026-10-21`;
+  a.lastTo = to.join(', ');
+  render();
+  if (mailCtx.ctx) {
+    close('ov-mail'); close(mailCtx.ctx === 'c' ? 'ov-create' : 'ov-reset');
+    toast(`${mailCtx.ctx === 'c' ? '已建立帳號，' : '已重設密碼，'}密碼函已寄給 ${to.join('、')}`);
+    return;
+  }
+  if (kind === 'reset') {
+    $('m-result').innerHTML = `<div class="ok-box">已重設密碼，新的密碼函已寄給 ${esc(to.join('、'))}${cc.length ? `，副本 ${esc(cc.join('、'))}` : ''}。</div>
+      <div class="warn">舊密碼已失效，新密碼已同步到 BPM。新密碼只在這封信裡，客服後台查不到。</div>`;
+    $('mail-step1').hidden = true; $('mail-step2').hidden = false;
+    return;
+  }
+  close('ov-mail');
+  toast(`已寄出帳號資訊給 ${to.join('、')}`);
+});
+document.addEventListener('click', (e) => {
+  const m = e.target.closest('[data-mail]');
+  if (m) openMail(accounts.find((a) => String(a.id) === m.dataset.mail), null, null);
+  const mn = e.target.closest('[data-mailnow]');
+  if (mn) { const c = lastCred[mn.dataset.mailnow]; if (c) openMail(c.acct, c.pw, mn.dataset.mailnow); }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('ov-create').hidden && !$('create-step1').hidden) close('ov-create');
+  if (!$('ov-reset').hidden && !$('reset-step1').hidden) close('ov-reset');
+});
+$('f-mod').innerHTML += MODULES.map(([code, name]) => `<option value="${code}">${esc(name)}</option>`).join('');
+['q', 'f-status', 'f-type', 'f-off', 'f-mod', 'f-exc'].forEach((id) => $(id).addEventListener('input', render));
+Object.assign(accounts.find((a) => a.id === 412), { mailed: '密碼函寄給 it@sunrise-bio.example，2026-10-01', lastTo: 'it@sunrise-bio.example' });
+fillCompanies(); render();
+</script>
+
+</body></html>
